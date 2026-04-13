@@ -15,6 +15,7 @@ const attemptRouter = require('./src/routes/attemptRoutes')
 const jawabanPGRouter = require('./src/routes/jawabanPGRoutes')
 const jawabanEsaiRouter = require('./src/routes/jawabanEsaiRoutes')
 const pelajarRoutes = require('./src/routes/pelajarRoutes');
+const dashboardRouter = require('./src/routes/dashboardRoutes');
 
 app.use(cors());
 app.use(express.json())
@@ -29,6 +30,7 @@ app.use('/api', attemptRouter)
 app.use('/api', pelajarRoutes)
 app.use('/api', jawabanPGRouter)
 app.use('/api', jawabanEsaiRouter)
+app.use('/api', dashboardRouter)
 
 app.get('/', (req, res) => {
     res.send('Hello world')
