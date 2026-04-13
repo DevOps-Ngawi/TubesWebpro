@@ -40,7 +40,7 @@ const Homepage = () => {
 
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3030/api/sections-php", {
+      const response = await fetch("http://localhost:3030/api/sections", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

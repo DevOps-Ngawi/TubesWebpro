@@ -64,7 +64,7 @@ const ListSoal = () => {
           }
         }
 
-        const resEsai = await fetch(`http://localhost:3030/api/fetch-soal-esai`, {
+        const resEsai = await fetch(`http://localhost:3030/api/soal-esai/level/${id_level}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -76,10 +76,7 @@ const ListSoal = () => {
         let listEsai = [];
         if (resEsai.ok) {
           const dataEsai = await resEsai.json();
-          const allEsai = dataEsai.payload?.datas || [];
-          listEsai = allEsai
-            .filter(s => Number(s.id_level) === Number(id_level))
-            .map(s => ({ ...s, tipe: 'esai' }));
+          listEsai = (dataEsai.payload?.datas || []).map(s => ({ ...s, tipe: 'esai' }));
         }
 
         let listPG = [];
