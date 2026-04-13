@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import DashboardStats from '../components/DashboardStats';
@@ -30,7 +30,7 @@ const Homepage = () => {
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState('');
 
-  const fetchSections = async () => {
+  const fetchSections = useCallback(async () => {
     const token = localStorage.getItem('token');
 
     if (!token) {
@@ -68,11 +68,11 @@ const Homepage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     fetchSections();
-  }, [navigate]);
+  }, [fetchSections]);
 
   const filteredSections = sections.filter((section) =>
     section.nama?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -82,10 +82,6 @@ const Homepage = () => {
   const indexOfFirstItem = indexOfLastItem - rowsPerPage;
   const currentSections = filteredSections.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredSections.length / rowsPerPage);
-
-  const handleDetailsClick = (sectionId) => {
-    navigate(`/sections/${sectionId}`);
-  };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
