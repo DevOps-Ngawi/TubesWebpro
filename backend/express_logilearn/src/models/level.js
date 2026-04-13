@@ -16,6 +16,9 @@ async function getLevelsBySection(slugSection) {
                     slug: slugSection
                 }
             }
+        },
+        include: {
+            sections: true
         }
     })
 }
