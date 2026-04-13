@@ -28,10 +28,7 @@ export default function DetailAttempt() {
     setShowEditModal(true);
   };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditForm({ skor: "", feedback: "" });
-  };
+
 
   const handleSaveEdit = async () => {
     if (!editingId) return;
@@ -209,9 +206,8 @@ export default function DetailAttempt() {
                   Skor Akhir
                 </small>
                 <span
-                  className={`fw-bold fs-4 ${
-                    attempt.skor >= 75 ? "text-success" : "text-danger"
-                  }`}
+                  className={`fw-bold fs-4 ${attempt.skor >= 75 ? "text-success" : "text-danger"
+                    }`}
                 >
                   {Number(attempt.skor).toFixed(2)}
                 </span>
@@ -243,11 +239,10 @@ export default function DetailAttempt() {
                         Jawaban Siswa:
                       </span>
                       <span
-                        className={`fw-medium ${
-                          jawaban.opsis?.is_correct
+                        className={`fw-medium ${jawaban.opsis?.is_correct
                             ? "text-success"
                             : "text-danger"
-                        }`}
+                          }`}
                       >
                         {jawaban.opsis?.text_opsi}
                       </span>
@@ -344,7 +339,7 @@ export default function DetailAttempt() {
                         {jawaban.feedback && (
                           <div className="bg-warning-subtle p-3 border border-warning rounded mb-3">
                             <small className="text-warning-emphasis fw-bold d-block mb-1">
-                              {jawaban.id_admin === null ? `Feedback AI` : `Feedback Admin` }
+                              {jawaban.id_admin === null ? `Feedback AI` : `Feedback Admin`}
                             </small>
                             <p className="mb-0 text-dark small">
                               {jawaban.feedback}

@@ -6,7 +6,49 @@ const aiGrading = require('../services/aiGrading');
 async function getAllAttempts(req, res) {
   try {
     const data = await Attempt.getAllAttempts();
-    response(200, data || [], 'Berhasil mendapatkan semua attempt', res);
+
+    // Stats Calculations
+    const totalAttempts = data ? data.length : 0;
+    const averageScore = totalAttempts > 0
+      ? data.reduce((acc, curr) => acc + Number(curr.skor || 0), 0) / totalAttempts
+      : 0;
+
+    // Calculate Level with lowest average score
+    const levelScores = {};
+    if (data) {
+      data.forEach(a => {
+        if (a.levels && a.levels.nama) {
+          if (!levelScores[a.levels.nama]) {
+            levelScores[a.levels.nama] = { total: 0, count: 0 };
+          }
+          levelScores[a.levels.nama].total += Number(a.skor || 0);
+          levelScores[a.levels.nama].count += 1;
+        }
+      });
+    }
+
+    let lowestAvgLevel = '-';
+    let lowestAvgScore = Infinity;
+    for (const [levelName, levelData] of Object.entries(levelScores)) {
+      const avg = levelData.total / levelData.count;
+      if (avg < lowestAvgScore) {
+        lowestAvgScore = avg;
+        lowestAvgLevel = levelName;
+      }
+    }
+    if (lowestAvgScore === Infinity) lowestAvgScore = 0;
+
+    const responsePayload = {
+      attempts: data || [],
+      stats: {
+        totalAttempts,
+        averageScore,
+        lowestAvgLevel,
+        lowestAvgScore
+      }
+    };
+
+    response(200, responsePayload, 'Berhasil mendapatkan semua attempt', res);
   } catch (error) {
     console.log(error.message);
     response(500, null, `Terjadi kesalahan server: ${error.message}`, res);

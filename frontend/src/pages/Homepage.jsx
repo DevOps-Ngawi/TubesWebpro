@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import DashboardStats from '../components/DashboardStats';
 import Swal from 'sweetalert2';
 
 const Homepage = () => {
@@ -274,6 +275,9 @@ const Homepage = () => {
       <Navbar />
 
       <div className="container mt-5">
+        {/* Dashboard Charts */}
+        <DashboardStats />
+
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
             <h1 className="fw-bold mb-1">Daftar Section</h1>
