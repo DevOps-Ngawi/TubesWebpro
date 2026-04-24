@@ -16,7 +16,7 @@ const createOption = () => ({ text_opsi: '', is_correct: false });
 const INITIAL_OPTIONS = [createOption(), createOption()];
 
 /** Converts a zero-based index to an uppercase letter (0 → "A", 1 → "B", …). */
-const getOptionLabel = (index) => String.fromCharCode(65 + index);
+const getOptionLabel = (index) => String.fromCodePoint(65 + index);
 
 // ─── Validation Messages ──────────────────────────────────────────────────────
 
@@ -170,7 +170,7 @@ export default function AddSoalPG() {
         const token = localStorage.getItem('token');
 
         const payload = {
-          id_level: parseInt(levelId, 10),
+          id_level: Number.parseInt(levelId, 10),
           text_soal: pertanyaan,
           opsi,
         };
@@ -384,14 +384,13 @@ export default function AddSoalPG() {
               style={{ ...STYLES.fontBase, ...STYLES.saveBtn }}
             >
               {isSubmitting ? (
-                <>
+                <output className="d-inline-flex align-items-center">
                   <span
                     className="spinner-border spinner-border-sm me-2"
-                    role="status"
                     aria-hidden="true"
                   />
-                  Menyimpan…
-                </>
+                  <span>Menyimpan…</span>
+                </output>
               ) : (
                 'Simpan Soal'
               )}
