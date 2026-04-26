@@ -18,7 +18,7 @@ export default function EditSoalPG() {
     handleSave: hookHandleSave,
     navigate
   } = useEditSoal({
-    apiUrl: 'http://localhost:3030/api/soals-pg',
+    apiUrl: `${import.meta.env.VITE_API_URL}/api/soals-pg`,
     onFetchSuccess: (data) => {
       setPertanyaan(data.text_soal);
       setOpsi(data.opsis || []);

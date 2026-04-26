@@ -38,7 +38,7 @@ const DashboardStats = () => {
       try {
         setLoading(true);
         const response = await fetch(
-          "http://localhost:3030/api/dashboard-stats",
+          `${import.meta.env.VITE_API_URL}/api/dashboard-stats`,
           {
             headers: {
               "Content-Type": "application/json",

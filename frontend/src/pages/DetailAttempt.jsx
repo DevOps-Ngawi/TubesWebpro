@@ -44,7 +44,7 @@ export default function DetailAttempt() {
       const token = localStorage.getItem("token");
       const idAdmin = localStorage.getItem("id");
       const response = await fetch(
-        `http://localhost:3030/api/jawaban-esais/${editingId}`,
+        `${import.meta.env.VITE_API_URL}/api/jawaban-esais/${editingId}`,
         {
           method: "PUT",
           headers: {
@@ -92,7 +92,7 @@ export default function DetailAttempt() {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3030/api/attempts/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/attempts/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

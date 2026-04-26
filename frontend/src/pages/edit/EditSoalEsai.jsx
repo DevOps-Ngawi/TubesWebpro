@@ -7,7 +7,7 @@ export default function EditSoalEsai() {
   const [kataKunci, setKataKunci] = useState('');
 
   const { loadingFetch, isSaving, error, setError, handleSave, navigate } = useEditSoal({
-    apiUrl: 'http://localhost:3030/api/soal-esai',
+    apiUrl: `${import.meta.env.VITE_API_URL}/api/soal-esai`,
     onFetchSuccess: (datas) => {
       setPertanyaan(datas.text_soal);
       setKataKunci(datas.kata_kunci || '');

@@ -54,7 +54,7 @@ const LevelPage = () => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:3030/api/levels/${selectedLevel.id}`,
+        `${import.meta.env.VITE_API_URL}/api/levels/${selectedLevel.id}`,
         {
           method: "DELETE",
           headers: {
@@ -103,7 +103,7 @@ const LevelPage = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3030/api/${slugSection}/levels`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/${slugSection}/levels`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -130,7 +130,7 @@ const LevelPage = () => {
       }
       const token = localStorage.getItem("token");
 
-      const response = await fetch("http://localhost:3030/api/levels", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/levels`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -180,7 +180,7 @@ const LevelPage = () => {
       const token = localStorage.getItem("token");
 
       const response = await fetch(
-        `http://localhost:3030/api/levels/${selectedLevel.id}`,
+        `${import.meta.env.VITE_API_URL}/api/levels/${selectedLevel.id}`,
         {
           method: "PUT",
           headers: {
@@ -241,7 +241,7 @@ const LevelPage = () => {
       const token = localStorage.getItem("token");
 
       try {
-        const response = await fetch("http://localhost:3030/api/sections", {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/sections`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
