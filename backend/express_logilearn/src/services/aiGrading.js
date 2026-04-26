@@ -57,13 +57,14 @@ async function nilaiEsai(soal, jawaban) {
 
   const raw = data.choices[0].message.content.trim()
 
-  const match = raw.match(/\{[\s\S]*\}/)
-  if (!match) {
+  const start = raw.indexOf('{')
+  const end = raw.lastIndexOf('}')
+  if (start === -1 || end === -1 || end <= start) {
     console.error("RAW AI OUTPUT:", raw)
     throw new Error("AI output not JSON")
   }
 
-  const parsed = JSON.parse(match[0])
+  const parsed = JSON.parse(raw.substring(start, end + 1))
 
   return {
     score: Math.max(0, Math.min(parsed.score, 1)),

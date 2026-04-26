@@ -17,7 +17,12 @@ const jawabanEsaiRouter = require('./src/routes/jawabanEsaiRoutes')
 const pelajarRoutes = require('./src/routes/pelajarRoutes');
 const dashboardRouter = require('./src/routes/dashboardRoutes');
 
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',').map(o => o.trim());
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  credentials: true,
+}));
 app.use(express.json())
 app.use('/api/auth', authRoutes);
 //routes section
