@@ -4,9 +4,25 @@ const axios = require('axios')
 
 async function create(req, res) {
     try {
-        const {nama, idSection} = req.body
-        const data = await Level.createLevel(idSection, nama)
-        response(200, data, `successfully`, res)
+        // Ambil field baru: deskripsi dan urutan
+        const {nama, idSection, deskripsi, urutan} = req.body
+
+        // Validasi server-side
+        if (!nama || nama.trim() === '') {
+            return response(400, null, `nama level wajib diisi`, res)
+        }
+        if (nama.trim().length < 3) {
+            return response(400, null, `nama level minimal 3 karakter`, res)
+        }
+        if (!idSection) {
+            return response(400, null, `section wajib dipilih`, res)
+        }
+        if (urutan !== undefined && urutan !== null && urutan !== '' && (isNaN(urutan) || Number(urutan) < 1)) {
+            return response(400, null, `urutan level harus berupa angka positif`, res)
+        }
+
+        const data = await Level.createLevel(idSection, nama.trim(), deskripsi, urutan)
+        response(200, data, `level created successfully`, res)
     } catch(err) {
         console.log(err.message)
         response(500, null, `failed to : ${err.message}`, res)
@@ -47,7 +63,7 @@ async function getAllBySection(req, res) {
         if(!data){
             return response(404, null, `data not found`, res)
         }
-        response(200, data, `get all levels by section" ${slugSection}`, res)
+        response(200, data, `get all levels by section: ${slugSection}`, res)
     } catch(err) {
         console.log(err.message)
         response(500, null, `failed to : ${err.message}`, res)
@@ -61,10 +77,10 @@ async function getBySectionId(req, res) {
         if(!data){
             return response(404, null, `data not found`, res)
         }
-        response(200, data, `get all levels by section" ${slugSection}`, res)
+        response(200, data, `get level by section: ${slugSection}`, res)
     } catch(err) {
         console.log(err.message)
-        response(500, null, `failed to : ${err.message}`, res)
+        response(500, null, `failed to get level by section: ${err.message}`, res)
     }
 }
 
@@ -85,12 +101,24 @@ async function getById(req, res) {
 async function update(req, res) {
     try {
         const {id} = req.params
-        const {nama, idSection} = req.body
+        const {nama, idSection, deskripsi, urutan} = req.body
+
+        // Validasi server-side
+        if (!nama || nama.trim() === '') {
+            return response(400, null, `nama level wajib diisi`, res)
+        }
+        if (nama.trim().length < 3) {
+            return response(400, null, `nama level minimal 3 karakter`, res)
+        }
+        if (!idSection) {
+            return response(400, null, `section wajib dipilih`, res)
+        }
+
         const data = await Level.getLevelById(id)
         if(!data){
             return response(404, null, `data not found`, res)
         }
-        const updated = await Level.updateLevel(id, idSection, nama)
+        const updated = await Level.updateLevel(id, idSection, nama.trim(), deskripsi, urutan)
         response(200, updated, `level updated successfully`, res)
     } catch(err) {
         console.log(err.message)
@@ -135,49 +163,31 @@ async function getSoalByLevelAndId(req, res) {
         const levelId = Number(id)
         const soalId = Number(idSoal)
         
-        console.log(`getSoalByLevelAndId called:`)
-        console.log(`  - slugSection: ${slugSection}`)
-        console.log(`  - levelId (raw): ${id}, (parsed): ${levelId}`)
-        console.log(`  - soalId (raw): ${idSoal}, (parsed): ${soalId}`)
-        console.log(`  - All params:`, req.params)
-        
-        // First check if level exists in the requested section
         const levelInSection = await Level.getLevelsBySectionId(slugSection, levelId)
-        console.log(`  - levelInSection check: ${levelInSection ? 'found' : 'not found'}`)
-        
         if (!levelInSection) {
-            // Check if level exists in another section
             const levelAnywhere = await Level.getLevelById(levelId)
-            console.log(`  - levelAnywhere check: ${levelAnywhere ? 'found' : 'not found'}`)
             if (levelAnywhere) {
-                console.log(`  - Level ${levelId} exists but not in section ${slugSection}`)
-                return response(404, null, `level ${levelId} not found in section ${slugSection}. Level ${levelId} exists in a different section.`, res)
+                return response(404, null, `level ${levelId} not found in section ${slugSection}`, res)
             } else {
-                console.log(`  - Level ${levelId} does not exist at all`)
                 return response(404, null, `level ${levelId} not found`, res)
             }
         }
         
         const data = await Level.getSoalByLevelIdAndSoalId(slugSection, levelId, soalId)
-        console.log(`getSoalByLevelAndId result: ${data ? 'found' : 'not found'}`)
         if(!data){
-            // Check if soal exists but in different level
             const prisma = require('../config/prisma')
             const soalExists = await prisma.soals.findUnique({
                 where: { id: soalId }
             })
             if (soalExists) {
-                console.log(`  - Soal ${soalId} exists but in level ${soalExists.id_level}, not level ${levelId}`)
-                return response(404, null, `soal with id ${soalId} not found in level ${levelId} of section ${slugSection}. Soal exists in level ${soalExists.id_level}.`, res)
+                return response(404, null, `soal with id ${soalId} not found in level ${levelId}`, res)
             } else {
-                console.log(`  - Soal ${soalId} does not exist at all`)
-                return response(404, null, `soal with id ${soalId} not found in level ${levelId} of section ${slugSection}`, res)
+                return response(404, null, `soal with id ${soalId} not found`, res)
             }
         }
         response(200, data, `get soal by level: ${levelId} and soal id: ${soalId}`, res)
     } catch(err) {
         console.log(`getSoalByLevelAndId error: ${err.message}`)
-        console.log(`getSoalByLevelAndId error stack: ${err.stack}`)
         response(500, null, `failed to get soal: ${err.message}`, res)
     }
 }
