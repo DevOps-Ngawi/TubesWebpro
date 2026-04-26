@@ -13,7 +13,7 @@ export default function DetailSoalEsai() {
     const fetchDetail = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:3030/api/soal-esai/${id}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/soal-esai/${id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const result = await response.json();

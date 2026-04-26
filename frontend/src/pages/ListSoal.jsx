@@ -50,7 +50,7 @@ const ListSoal = () => {
       try {
         setLoading(true);
         setError(null);
-        const resLevel = await fetch(`http://localhost:3030/api/levels/${id_level}`, {
+        const resLevel = await fetch(`${import.meta.env.VITE_API_URL}/api/levels/${id_level}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -64,11 +64,11 @@ const ListSoal = () => {
           }
         }
 
-        const resEsai = await fetch(`http://localhost:3030/api/soal-esai/level/${id_level}`, {
+        const resEsai = await fetch(`${import.meta.env.VITE_API_URL}/api/soal-esai/level/${id_level}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        const resPG = await fetch(`http://localhost:3030/api/soals-pg/level/${id_level}`, {
+        const resPG = await fetch(`${import.meta.env.VITE_API_URL}/api/soals-pg/level/${id_level}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -106,8 +106,8 @@ const ListSoal = () => {
     try {
       const token = localStorage.getItem("token");
       const endpoint = selectedSoal.tipe === 'esai'
-        ? `http://localhost:3030/api/soal-esai/${selectedSoal.id}`
-        : `http://localhost:3030/api/soals-pg/${selectedSoal.id}`;
+        ? `${import.meta.env.VITE_API_URL}/api/soal-esai/${selectedSoal.id}`
+        : `${import.meta.env.VITE_API_URL}/api/soals-pg/${selectedSoal.id}`;
 
       const response = await fetch(endpoint, {
         method: "DELETE",

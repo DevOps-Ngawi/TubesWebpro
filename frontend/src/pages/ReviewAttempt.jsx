@@ -81,7 +81,7 @@ export default function ReviewAttempt() {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3030/api/attempts', {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/attempts`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error("Gagal memuat data attempt.");

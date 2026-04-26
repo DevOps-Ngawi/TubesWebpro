@@ -24,7 +24,7 @@ export default function EditSoalPG() {
     handleCancel,
     markAsDirty
   } = useEditSoal({
-    apiUrl: 'http://localhost:3030/api/soals-pg',
+    apiUrl: `${import.meta.env.VITE_API_URL}/api/soals-pg`,
     onFetchSuccess: handleFetchSuccess
   });
 
