@@ -5,6 +5,9 @@ const axios = require('axios');
 const getAllEsai = async (req, res) => {
     try {
         const data = await esaiModel.getAllSoalEsai();
+        if (!data || data.length === 0) {
+            return response(404, null, "data not found", res);
+        }
         return response(200, data, "Berhasil mengambil semua soal esai", res);
     } catch (error) {
         return response(500, null, error.message, res);
@@ -30,6 +33,9 @@ const getEsaiByLevel = async (req, res) => {
     try {
         const { id_level } = req.params;
         const data = await esaiModel.getSoalEsaiByLevel(id_level);
+        if (!data || data.length === 0) {
+            return response(404, null, "data not found", res);
+        }
         return response(200, data, `Berhasil mengambil soal esai level ${id_level}`, res);
     } catch (error) {
         return response(500, null, error.message, res);
@@ -71,6 +77,10 @@ const updateEsai = async (req, res) => {
 const deleteEsai = async (req, res) => {
     try {
         const { id } = req.params;
+        const cekData = await esaiModel.getSoalEsaiById(id);
+        if (!cekData) {
+            return response(404, null, "Soal esai tidak ditemukan", res);
+        }
         await esaiModel.deleteSoalEsai(id);
         return response(200, null, "Soal esai berhasil dihapus", res);
     } catch (error) {
