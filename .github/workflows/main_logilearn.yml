@@ -23,12 +23,27 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: npm install and build backend
+      - name: Install backend
+        working-directory: backend/express_logilearn
+        run: npm install
+
+      - name: Audit backend
+        working-directory: backend/express_logilearn
+        run: npm audit --audit-level=high
+
+      - name: Build & test backend
         working-directory: backend/express_logilearn
         run: |
-          npm install
           npm run build --if-present
           npm run test --if-present
+
+      - name: Install frontend
+        working-directory: frontend
+        run: npm install
+
+      - name: Audit frontend
+        working-directory: frontend
+        run: npm audit --audit-level=high
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
