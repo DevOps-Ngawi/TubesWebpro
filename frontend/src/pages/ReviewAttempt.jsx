@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import TablePagination from '../components/TablePagination';
@@ -19,12 +19,6 @@ const SortIcon = ({ colKey, sortConfig }) => {
 export default function ReviewAttempt() {
   const navigate = useNavigate();
   const [attempts, setAttempts] = useState([]);
-  const [stats, setStats] = useState({
-    totalAttempts: 0,
-    averageScore: 0,
-    lowestAvgLevel: '-',
-    lowestAvgScore: 0
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -38,10 +32,44 @@ export default function ReviewAttempt() {
     currentItems,
     totalPages,
     filteredCount,
+    filteredData,
     indexOfFirstItem,
     sortConfig,
     handleSort,
   } = useTable(attempts, ['pelajars.username', 'levels.nama', 'levels.sections.nama'], 10);
+
+  const stats = useMemo(() => {
+    if (!filteredData || filteredData.length === 0) {
+      return { totalAttempts: 0, averageScore: 0, lowestAvgLevel: '-', lowestAvgScore: 0 };
+    }
+
+    const totalAttempts = filteredData.length;
+    const averageScore = filteredData.reduce((sum, a) => sum + Number(a.skor || 0), 0) / totalAttempts;
+
+    const levelMap = {};
+    filteredData.forEach((a) => {
+      const levelName = a.levels?.nama || 'Unknown';
+      if (!levelMap[levelName]) levelMap[levelName] = [];
+      levelMap[levelName].push(Number(a.skor || 0));
+    });
+
+    let lowestAvgLevel = '-';
+    let lowestAvgScore = Infinity;
+    Object.entries(levelMap).forEach(([level, scores]) => {
+      const avg = scores.reduce((s, v) => s + v, 0) / scores.length;
+      if (avg < lowestAvgScore) {
+        lowestAvgScore = avg;
+        lowestAvgLevel = level;
+      }
+    });
+
+    return {
+      totalAttempts,
+      averageScore,
+      lowestAvgLevel,
+      lowestAvgScore: lowestAvgScore === Infinity ? 0 : lowestAvgScore,
+    };
+  }, [filteredData]);
 
   useEffect(() => {
     fetchAttempts();
@@ -58,13 +86,7 @@ export default function ReviewAttempt() {
 
       const data = await response.json();
       const payloadData = data.payload?.datas;
-
-      if (payloadData?.attempts) {
-        setAttempts(payloadData.attempts);
-        setStats(payloadData.stats);
-      } else {
-        setAttempts(payloadData || []);
-      }
+      setAttempts(payloadData?.attempts || payloadData || []);
     } catch (err) {
       setError(err.message);
     } finally {
