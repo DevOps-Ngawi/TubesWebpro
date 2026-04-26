@@ -67,6 +67,7 @@ export const useTable = (data, searchFields, initialRows = 5) => {
     currentItems,
     totalPages,
     filteredCount: sortedData.length,
+    filteredData,
     indexOfFirstItem,
     sortConfig,
     handleSort,
