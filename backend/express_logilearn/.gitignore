@@ -4,4 +4,6 @@
 prisma/migrations
 /src/generated/prisma
 /src/generated
+coverage/
+error.log
 node_modules/
