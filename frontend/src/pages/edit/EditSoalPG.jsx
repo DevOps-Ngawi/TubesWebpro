@@ -1,53 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import EditPageLayout from '../../components/EditPageLayout';
+import React, { useState } from 'react';
 import FormTextarea from '../../components/FormTextarea';
-import FormFooter from '../../components/FormFooter';
+import useEditSoal from '../../hooks/useEditSoal';
+import EditSoalLayout from '../../components/EditSoalLayout';
 
 export default function EditSoalPG() {
-  const { id } = useParams();
-  const navigate = useNavigate();
-
   const [pertanyaan, setPertanyaan] = useState('');
   const [opsi, setOpsi] = useState([
     { text_opsi: '', is_correct: false },
     { text_opsi: '', is_correct: false }
   ]);
-  const [loading, setLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState(null);
-  const [levelId, setLevelId] = useState(null);
 
-  useEffect(() => {
-    const fetchSoal = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:3030/api/soals-pg/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
-
-        if (data.payload?.datas) {
-          setPertanyaan(data.payload.datas.text_soal);
-          setOpsi(data.payload.datas.opsis || []);
-          setLevelId(data.payload.datas.id_level);
-        } else {
-          setError('Data soal tidak ditemukan.');
-        }
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchSoal();
-    } else {
-      setLoading(false);
+  const {
+    loadingFetch,
+    isSaving,
+    error,
+    setError,
+    handleSave: hookHandleSave,
+    navigate
+  } = useEditSoal({
+    apiUrl: 'http://localhost:3030/api/soals-pg',
+    onFetchSuccess: (data) => {
+      setPertanyaan(data.text_soal);
+      setOpsi(data.opsis || []);
     }
-  }, [id]);
+  });
 
   const handleOpsiChange = (index, value) => {
     const newOpsi = [...opsi];
@@ -77,63 +53,32 @@ export default function EditSoalPG() {
     }
   };
 
-  const handleSave = async () => {
-    setError('');
-
-    if (!pertanyaan.trim()) {
-      setError('Pertanyaan wajib diisi.');
-      return;
-    }
-
-    if (opsi.some(o => !o.text_opsi.trim())) {
-      setError('Semua opsi jawaban harus diisi.');
-      return;
-    }
-
-    if (!opsi.some(o => o.is_correct)) {
-      setError('Pilih salah satu jawaban yang benar.');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3030/api/soals-pg/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          text_soal: pertanyaan,
-          opsi
-        })
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        navigate(`/list-soal/${levelId}`, { state: { message: "Soal berhasil diubah!" } });
-      } else {
-        setError(data.message || 'Gagal update soal.');
+  const handleSave = () => {
+    hookHandleSave({
+      body: {
+        text_soal: pertanyaan,
+        opsi
+      },
+      validate: () => {
+        if (!pertanyaan.trim()) return 'Pertanyaan wajib diisi.';
+        if (opsi.some(o => !o.text_opsi.trim())) return 'Semua opsi jawaban harus diisi.';
+        if (!opsi.some(o => o.is_correct)) return 'Pilih salah satu jawaban yang benar.';
+        return null;
       }
-    } catch (err) {
-      setError(err.message || 'Terjadi kesalahan saat menyimpan.');
-    } finally {
-      setIsSaving(false);
-    }
+    });
   };
 
   const interStyle = { fontFamily: "'Inter', sans-serif" };
 
-  if (loading) {
-    return <LoadingSpinner color="primary" />;
-  }
-
   return (
-    <EditPageLayout 
-      title="Ubah Soal Pilihan Ganda" 
+    <EditSoalLayout
+      title="Ubah Soal Pilihan Ganda"
       subtitle="Perbarui pertanyaan pilihan ganda"
+      loading={loadingFetch}
+      isSaving={isSaving}
+      error={error}
+      onSave={handleSave}
+      onCancel={() => navigate(-1)}
     >
       <FormTextarea
         label="PERTANYAAN"
@@ -221,19 +166,6 @@ export default function EditSoalPG() {
           ))}
         </div>
       </div>
-
-      {error && (
-        <div className="alert alert-danger py-2 small border-0 mb-4 rounded-3 d-flex align-items-center">
-          <i className="bi bi-exclamation-circle-fill me-2"></i>
-          {error}
-        </div>
-      )}
-
-      <FormFooter 
-        onCancel={() => navigate(-1)}
-        onSubmit={handleSave}
-        isSaving={isSaving}
-      />
-    </EditPageLayout>
+    </EditSoalLayout>
   );
 }
