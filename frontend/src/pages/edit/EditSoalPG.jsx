@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import FormTextarea from '../../components/FormTextarea';
 import useEditSoal from '../../hooks/useEditSoal';
 import EditSoalLayout from '../../components/EditSoalLayout';
@@ -10,25 +10,29 @@ export default function EditSoalPG() {
     { text_opsi: '', is_correct: false }
   ]);
 
+  const handleFetchSuccess = useCallback((data) => {
+    setPertanyaan(data.text_soal);
+    setOpsi(data.opsis || []);
+  }, []);
+
   const {
     loadingFetch,
     isSaving,
     error,
     setError,
     handleSave: hookHandleSave,
-    navigate
+    handleCancel,
+    markAsDirty
   } = useEditSoal({
     apiUrl: `${import.meta.env.VITE_API_URL}/api/soals-pg`,
-    onFetchSuccess: (data) => {
-      setPertanyaan(data.text_soal);
-      setOpsi(data.opsis || []);
-    }
+    onFetchSuccess: handleFetchSuccess
   });
 
   const handleOpsiChange = (index, value) => {
     const newOpsi = [...opsi];
     newOpsi[index].text_opsi = value;
     setOpsi(newOpsi);
+    markAsDirty();
     if (error) setError('');
   };
 
@@ -38,16 +42,19 @@ export default function EditSoalPG() {
       is_correct: i === index
     }));
     setOpsi(newOpsi);
+    markAsDirty();
     if (error) setError('');
   };
 
   const handleAddOpsi = () => {
     setOpsi([...opsi, { text_opsi: '', is_correct: false }]);
+    markAsDirty();
   };
 
   const handleRemoveOpsi = (index) => {
     if (opsi.length > 2) {
       setOpsi(opsi.filter((_, i) => i !== index));
+      markAsDirty();
     } else {
       setError('Minimal harus ada 2 opsi jawaban.');
     }
@@ -78,13 +85,14 @@ export default function EditSoalPG() {
       isSaving={isSaving}
       error={error}
       onSave={handleSave}
-      onCancel={() => navigate(-1)}
+      onCancel={handleCancel}
     >
       <FormTextarea
         label="PERTANYAAN"
         value={pertanyaan}
         onChange={(e) => {
           setPertanyaan(e.target.value);
+          markAsDirty();
           if (error) setError('');
         }}
         error={error}

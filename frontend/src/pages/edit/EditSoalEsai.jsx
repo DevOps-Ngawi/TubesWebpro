@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import useEditSoal from '../../hooks/useEditSoal';
 import EditSoalLayout from '../../components/EditSoalLayout';
 
@@ -6,12 +6,22 @@ export default function EditSoalEsai() {
   const [pertanyaan, setPertanyaan] = useState('');
   const [kataKunci, setKataKunci] = useState('');
 
-  const { loadingFetch, isSaving, error, setError, handleSave, navigate } = useEditSoal({
+  const handleFetchSuccess = useCallback((datas) => {
+    setPertanyaan(datas.text_soal);
+    setKataKunci(datas.kata_kunci || '');
+  }, []);
+
+  const { 
+    loadingFetch, 
+    isSaving, 
+    error, 
+    setError, 
+    handleSave, 
+    handleCancel,
+    markAsDirty 
+  } = useEditSoal({
     apiUrl: `${import.meta.env.VITE_API_URL}/api/soal-esai`,
-    onFetchSuccess: (datas) => {
-      setPertanyaan(datas.text_soal);
-      setKataKunci(datas.kata_kunci || '');
-    }
+    onFetchSuccess: handleFetchSuccess
   });
 
   const onSave = () => {
@@ -37,7 +47,7 @@ export default function EditSoalEsai() {
       isSaving={isSaving}
       error={error}
       onSave={onSave}
-      onCancel={() => navigate(-1)}
+      onCancel={handleCancel}
     >
       <div className="mb-3">
         <label className="form-label fw-bold small text-secondary text-uppercase mb-2"
@@ -50,6 +60,7 @@ export default function EditSoalEsai() {
           value={pertanyaan}
           onChange={(e) => {
             setPertanyaan(e.target.value);
+            markAsDirty();
             if(error) setError('');
           }}
           placeholder="Masukkan soal esai"
@@ -73,7 +84,10 @@ export default function EditSoalEsai() {
           className="form-control border-light rounded-3 p-3"
           rows="3"
           value={kataKunci}
-          onChange={(e) => setKataKunci(e.target.value)}
+          onChange={(e) => {
+            setKataKunci(e.target.value);
+            markAsDirty();
+          }}
           placeholder="Masukkan kata kunci jawaban"
           style={{
             ...interStyle,
