@@ -14,7 +14,7 @@ export default function DetailSoalPG() {
       setError(null)
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:3030/api/soals-pg/${id}`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/soals-pg/${id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await response.json()
