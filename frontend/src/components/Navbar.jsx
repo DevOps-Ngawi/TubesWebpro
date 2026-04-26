@@ -32,12 +32,6 @@ const Navbar = () => {
 
           <div className="nav-right">
             <div className="nav-links">
-              <button
-                className="nav-link"
-                onClick={() => navigate('/levels')}
-              >
-                Levels
-              </button>
             </div>
             <div className="nav-links">
               <button

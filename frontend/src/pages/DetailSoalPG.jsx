@@ -10,31 +10,29 @@ export default function DetailSoalPG() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
+    const fetchSoal = async () => {
+      setError(null)
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`http://localhost:3030/api/soals-pg/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json()
+
+        if (data.payload?.datas) {
+          setSoal(data.payload.datas)
+          setError(null)
+        } else {
+          setError("Soal tidak ditemukan")
+        }
+        setLoading(false)
+      } catch (err) {
+        setError(err.message)
+        setLoading(false)
+      }
+    }
     fetchSoal()
   }, [id])
-
-  const fetchSoal = async () => {
-    setError(null) // Clear error on start
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:3030/api/soals-pg/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await response.json()
-
-      // Check payload.datas based on response helper structure
-      if (data.payload?.datas) {
-        setSoal(data.payload.datas)
-        setError(null) // Clear error on success to be safe
-      } else {
-        setError("Soal tidak ditemukan")
-      }
-      setLoading(false)
-    } catch (err) {
-      setError(err.message)
-      setLoading(false)
-    }
-  }
 
   const interStyle = { fontFamily: "'Inter', sans-serif" };
 

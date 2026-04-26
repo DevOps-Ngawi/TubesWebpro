@@ -1,5 +1,6 @@
 const esaiModel = require('../models/soalesai');
 const response = require('../helpers/response');
+const axios = require('axios');
 
 const getAllEsai = async (req, res) => {
     try {
@@ -77,4 +78,19 @@ const deleteEsai = async (req, res) => {
     }
 };
 
-module.exports = { getAllEsai, getEsaiById, getEsaiByLevel, createEsai, updateEsai, deleteEsai };
+const fetchEsai = async (req, res) => {
+    try {
+        const resp = await axios.get('http://localhost:8000/getEsai.php');
+        
+        if(!resp.data || !resp.data.status){
+            return response(404, null, `data soal esai tidak ditemukan`, res);
+        }
+        
+        return response(200, resp.data.data, `Berhasil mengambil semua soal esai`, res);
+    } catch(err) {
+        console.log(err.message);
+        return response(500, null, `Gagal mengambil data: ${err.message}`, res);
+    }
+};
+
+module.exports = { getAllEsai, getEsaiById, getEsaiByLevel, createEsai, updateEsai, deleteEsai, fetchEsai };

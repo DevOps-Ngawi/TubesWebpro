@@ -22,7 +22,6 @@ async function create(req, res) {
       result.feedback
     )
 
-    // Recalculate attempt score
     await Attempt.recalculateScore(idAttempt)
 
     response(200, data, "successfully", res)
@@ -57,17 +56,26 @@ async function getById(req, res) {
 async function update(req, res) {
     try {
         const { id } = req.params
-        // Get idAdmin from authenticated user if available, otherwise from body
-        const idAdmin = req.auth ? req.auth.id : req.body.idAdmin
-        const { skor, feedback } = req.body
+        const { skor, feedback, idAdmin } = req.body
 
-        if (skor === undefined) {
-             return response(400, null, "Skor is required", res)
+        if (!skor) {
+            return response(400, null, "Skor is required", res)
+        }
+
+        if (!feedback) {
+            return response(400, null, "Feedback is required", res)
+        }
+
+        if (!idAdmin) {
+            return response(400, null, "Id admin is required", res)
+        }
+        
+        if (Number(skor) < 0 || Number(skor) > 1){
+            return response(400, null, "Skor is not valid", res)
         }
 
         const updatedAnswer = await JwbEsai.updateJwbEsai(id, idAdmin, skor, feedback)
         
-        // Recalculate attempt score
         if (updatedAnswer && updatedAnswer.id_attempt) {
              await Attempt.recalculateScore(updatedAnswer.id_attempt)
         }

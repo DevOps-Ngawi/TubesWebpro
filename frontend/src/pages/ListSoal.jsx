@@ -279,7 +279,7 @@ const ListSoal = () => {
                         className="page-link"
                         onClick={() => setCurrentPage(prev => prev - 1)}
                       >
-                        Previous
+                        &lt;
                       </button>
                     </li>
                     {[...Array(totalPages)].map((_, i) => (
@@ -294,7 +294,7 @@ const ListSoal = () => {
                         className="page-link"
                         onClick={() => setCurrentPage(prev => prev + 1)}
                       >
-                        Next
+                        &gt;
                       </button>
                     </li>
                   </ul>

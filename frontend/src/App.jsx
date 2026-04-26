@@ -5,7 +5,6 @@ import ListLevel from './pages/ListLevel';
 import ReviewAttempt from './pages/ReviewAttempt';
 import DetailAttempt from './pages/DetailAttempt';
 import AddSoalPG from './pages/add/AddSoalPG';
-import ListSoalPG from './pages/ListSoalPG';
 import DetailSoalPG from './pages/DetailSoalPG';
 import DetailSoalEsai from './pages/DetailSoalEsai';
 import AddSoalEsai from './pages/add/AddSoalEsai';
@@ -26,11 +25,10 @@ function App() {
         <Route path="/home" element={<Homepage />} />
 
         {/* 3. Level */}
-        <Route path="/levels" element={<ListLevel />} />
+        <Route path="/:slugSection/levels" element={<ListLevel />} />
         {/* <Route path="/levels/:id" element={<DetailLevel/>}/> */}
 
         {/* 4. Soal PG */}
-        <Route path="/soals-pg" element={<ListSoalPG />} />
         <Route path="/soal-pg/detail/:id" element={<DetailSoalPG />} />
         <Route path="/soal-pg/edit/:id" element={<EditSoalPG />} />
         <Route path="/add-soal-pg" element={<AddSoalPG />} />

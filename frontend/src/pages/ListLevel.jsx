@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import "./styles/ListLevel.css";
 import Swal from "sweetalert2";
@@ -11,6 +11,8 @@ import DeleteLevelModal from "../components/DeleteLevelModal";
 
 const LevelPage = () => {
   const navigate = useNavigate();
+
+  const { slugSection } = useParams();
 
   const [levels, setLevels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ const LevelPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(5);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const handleUpdateClick = (level) => {
     setSelectedLevel(level);
@@ -101,7 +103,7 @@ const LevelPage = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:3030/api/fetch-levels", {
+      const response = await fetch(`http://localhost:3030/api/${slugSection}/levels`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -122,18 +124,10 @@ const LevelPage = () => {
   };
 
   const handleAddLevel = async () => {
-    if (!newLevelName || !selectedSectionId) {
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: "Nama level dan section wajib diisi",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      return;
-    }
-
     try {
+      if (!newLevelName || !selectedSectionId) {
+        throw new Error("Nama level dan section wajib diisi");
+      }
       const token = localStorage.getItem("token");
 
       const response = await fetch("http://localhost:3030/api/levels", {
@@ -179,18 +173,10 @@ const LevelPage = () => {
   };
 
   const handleUpdateLevel = async () => {
-    if (!updateLevelName || !updateSectionId) {
-      Swal.fire({
-        icon: "error",
-        title: "Gagal",
-        text: "Nama level dan section wajib diisi",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      return;
-    }
-
     try {
+      if (!updateLevelName || !updateSectionId) {
+        throw new Error("Nama level dan section wajib diisi");
+      }
       const token = localStorage.getItem("token");
 
       const response = await fetch(
@@ -304,13 +290,11 @@ const LevelPage = () => {
           </div>
 
           <div className="col-md-6 d-flex justify-content-md-end">
-            <div className="search-wrapper">
-              <span className="search-icon">
-                {/* <i className="bi bi-search"></i> */}
-              </span>
+            <div className="position-relative">
+              <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
               <input
                 type="text"
-                className="form-control search-input"
+                className="form-control ps-5"
                 placeholder="Cari level, section..."
                 value={searchTerm}
                 onChange={(e) => {
@@ -364,11 +348,14 @@ const LevelPage = () => {
                   currentItems.map((level, index) => (
                     <tr key={level.id}>
                       <td className="px-4">{indexOfFirstItem + index + 1}</td>
-                      <td className="px-4 fw-semibold">{level.nama_level}</td>
-                      <td className="px-4">{level?.nama_section || "-"}</td>
+                      <td className="px-4 fw-semibold">{level.nama}</td>
+                      <td className="px-4">{level?.sections.nama || "-"}</td>
                       <td className="px-4 text-center">
                         <div className="d-flex gap-2 justify-content-center">
-                          <button className="btn btn-sm btn-outline-primary rounded-pill px-3" onClick={() => navigate(`/list-soal/${level.id}`)}>
+                          <button
+                            className="btn btn-sm btn-outline-primary rounded-pill px-3"
+                            onClick={() => navigate(`/list-soal/${level.id}`)}
+                          >
                             Detil
                           </button>
                           <button
@@ -428,7 +415,7 @@ const LevelPage = () => {
                         className="page-link"
                         onClick={() => setCurrentPage((prev) => prev - 1)}
                       >
-                        Sebelumnya
+                        &lt;
                       </button>
                     </li>
                     {[...Array(totalPages)].map((_, i) => (
@@ -455,7 +442,7 @@ const LevelPage = () => {
                         className="page-link"
                         onClick={() => setCurrentPage((prev) => prev + 1)}
                       >
-                        Selanjutnya
+                        &gt;
                       </button>
                     </li>
                   </ul>

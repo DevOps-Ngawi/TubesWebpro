@@ -12,5 +12,6 @@ router.delete('/soal-esai/:id', verifyLogin, onlyAdmin, esaiController.deleteEsa
 router.get('/soal-esai', verifyLogin, esaiController.getAllEsai);
 router.get('/soal-esai/:id', verifyLogin, esaiController.getEsaiById);
 router.get('/soal-esai/level/:id_level', verifyLogin, esaiController.getEsaiByLevel);
+router.get('/fetch-soal-esai', verifyLogin, onlyAdmin, esaiController.fetchEsai);
 
 module.exports = router;

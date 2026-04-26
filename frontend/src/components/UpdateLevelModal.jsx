@@ -45,7 +45,6 @@ const UpdateLevelModal = ({
                   value={updateSectionId}
                   onChange={(e) => setUpdateSectionId(e.target.value)}
                 >
-                  <option value="">--Pilih Section--</option>
                   {sections.map((section) => (
                     <option key={section.id} value={section.id}>
                       {section.nama}

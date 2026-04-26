@@ -4,6 +4,9 @@ async function getAllLevels() {
     return prisma.levels.findMany({
         include: {
             sections: true
+        },
+        orderBy: {
+            urutan: 'asc'
         }
     })
 }
@@ -16,6 +19,12 @@ async function getLevelsBySection(slugSection) {
                     slug: slugSection
                 }
             }
+        },
+        include: {
+            sections: true
+        },
+        orderBy: {
+            urutan: 'asc'
         }
     })
 }
@@ -55,23 +64,29 @@ async function getLevelById(id) {
     })
 }
 
-async function createLevel(idSection, nama) {
+// Field baru: deskripsi dan urutan
+async function createLevel(idSection, nama, deskripsi = null, urutan = null) {
     return prisma.levels.create({
         data: {
             id_section: Number(idSection),
-            nama: nama
+            nama: nama,
+            deskripsi: deskripsi || null,
+            urutan: urutan ? Number(urutan) : null
         }
     })
 }
 
-async function updateLevel(id, idSection, nama) {
+// Field baru: deskripsi dan urutan
+async function updateLevel(id, idSection, nama, deskripsi = null, urutan = null) {
     return prisma.levels.update({
         where: {
             id: Number(id)
         },
         data: {
             id_section: Number(idSection),
-            nama: nama
+            nama: nama,
+            deskripsi: deskripsi || null,
+            urutan: urutan ? Number(urutan) : null
         }
     })
 }
@@ -87,7 +102,6 @@ async function deleteLevel(id) {
 async function getSoalsByLevelId(slugSection, idLevel) {
     console.log(`getSoalsByLevelId: slugSection=${slugSection}, idLevel=${idLevel}`);
     
-    // First verify the level exists in the section
     const level = await prisma.levels.findFirst({
         where: {
             id: Number(idLevel),
@@ -105,7 +119,6 @@ async function getSoalsByLevelId(slugSection, idLevel) {
         return [];
     }
 
-    // Then get all soals for this level
     const soals = await prisma.soals.findMany({
         where: {
             id_level: Number(idLevel)
@@ -125,7 +138,6 @@ async function getSoalsByLevelId(slugSection, idLevel) {
 async function getSoalByLevelIdAndSoalId(slugSection, idLevel, idSoal) {
     console.log(`getSoalByLevelIdAndSoalId: slugSection=${slugSection}, idLevel=${idLevel}, idSoal=${idSoal}`);
     
-    // First verify the level exists in the section
     const level = await prisma.levels.findFirst({
         where: {
             id: Number(idLevel),
@@ -150,7 +162,6 @@ async function getSoalByLevelIdAndSoalId(slugSection, idLevel, idSoal) {
     if (level) {
         console.log(`Level ${idLevel} is in section: id=${level.sections.id}, nama=${level.sections.nama}, slug=${level.sections.slug}`);
     } else {
-        // Check if level exists but in different section
         const levelInOtherSection = await prisma.levels.findUnique({
             where: { id: Number(idLevel) },
             include: {
@@ -171,7 +182,6 @@ async function getSoalByLevelIdAndSoalId(slugSection, idLevel, idSoal) {
         return null;
     }
 
-    // Then get the specific soal
     const soal = await prisma.soals.findFirst({
         where: {
             id: Number(idSoal),
@@ -183,20 +193,6 @@ async function getSoalByLevelIdAndSoalId(slugSection, idLevel, idSoal) {
     });
     
     console.log(`Soal found: ${soal ? 'yes' : 'no'}`);
-    if (soal) {
-        console.log(`Soal id: ${soal.id}, id_level: ${soal.id_level}, tipe: ${soal.tipe}`);
-    } else {
-        // Check if soal exists but in different level
-        const soalInOtherLevel = await prisma.soals.findUnique({
-            where: { id: Number(idSoal) }
-        });
-        if (soalInOtherLevel) {
-            console.log(`Soal ${idSoal} exists but in level ${soalInOtherLevel.id_level}, not level ${idLevel}`);
-        } else {
-            console.log(`Soal ${idSoal} does not exist at all`);
-        }
-    }
-    
     return soal;
 }
 

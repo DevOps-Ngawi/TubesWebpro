@@ -39,7 +39,7 @@ export default function DetailSoalEsai() {
     return (
       <div className="min-vh-100 d-flex justify-content-center align-items-center" style={interStyle}>
         <div className="spinner-border text-primary" role="status"></div>
-        <span className="ms-3 fw-medium text-secondary">Memuat detail soal...</span>
+        <span className="ms-3 fw-medium text-secondary">Memuat detil soal...</span>
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function DetailSoalEsai() {
             </div>
             <div>
               <h1 className="h4 fw-bold mb-1" style={{ color: '#0f172a', letterSpacing: '-0.02em' }}>
-                Detail Soal Esai
+                Detil Soal Esai
               </h1>
               <p className="text-muted small mb-0">Informasi lengkap mengenai pertanyaan esai</p>
             </div>
