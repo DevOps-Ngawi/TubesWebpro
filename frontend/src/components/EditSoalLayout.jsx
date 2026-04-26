@@ -1,4 +1,7 @@
 import React from 'react';
+import PropTypes from 'prop-types';
+import LoadingSpinner from './LoadingSpinner';
+import FormFooter from './FormFooter';
 
 const interStyle = { fontFamily: "'Inter', sans-serif" };
 
@@ -18,12 +21,7 @@ const interStyle = { fontFamily: "'Inter', sans-serif" };
  */
 export default function EditSoalLayout({ title, subtitle, loading, isSaving, error, onSave, onCancel, children }) {
   if (loading) {
-    return (
-      <div className="min-vh-100 d-flex justify-content-center align-items-center" style={interStyle}>
-        <div className="spinner-border text-warning" role="status"></div>
-        <span className="ms-3 fw-medium">Memuat data soal...</span>
-      </div>
-    );
+    return <LoadingSpinner color="warning" message="Memuat data soal..." />;
   }
 
   return (
@@ -50,36 +48,32 @@ export default function EditSoalLayout({ title, subtitle, loading, isSaving, err
 
           {children}
 
-          {error && <div className="alert alert-danger py-2 small border-0 mb-4">{error}</div>}
+          {error && (
+            <div className="alert alert-danger py-2 small border-0 mb-4 rounded-3 d-flex align-items-center">
+              <i className="bi bi-exclamation-circle-fill me-2"></i>
+              {error}
+            </div>
+          )}
 
-          <div className="d-flex justify-content-end gap-2 mt-2">
-            <button
-              type="button"
-              className="btn btn-light px-4 py-2 fw-semibold rounded-3 border-0"
-              onClick={onCancel}
-              style={{ ...interStyle, backgroundColor: '#f8fafc', color: '#0f172a', fontSize: '14px' }}
-            >
-              Batal
-            </button>
-            <button
-              className="btn btn-warning px-4 py-2 fw-semibold rounded-3 shadow-sm border-0 text-white"
-              onClick={onSave}
-              disabled={isSaving}
-              style={{
-                ...interStyle,
-                minWidth: '160px',
-                backgroundColor: '#ffc107',
-                fontSize: '14px'
-              }}
-            >
-              {isSaving ? (
-                <span className="spinner-border spinner-border-sm me-2"></span>
-              ) : 'Ubah Soal'}
-            </button>
-          </div>
+          <FormFooter 
+            onCancel={onCancel}
+            onSubmit={onSave}
+            isSaving={isSaving}
+          />
 
         </div>
       </div>
     </div>
   );
 }
+
+EditSoalLayout.propTypes = {
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  loading: PropTypes.bool,
+  isSaving: PropTypes.bool,
+  error: PropTypes.string,
+  onSave: PropTypes.func,
+  onCancel: PropTypes.func,
+  children: PropTypes.node,
+};
