@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const FormFooter = ({ onCancel, onSubmit, isSaving, submitLabel = "Ubah Soal" }) => {
   const interStyle = { fontFamily: "'Inter', sans-serif" };
@@ -32,4 +33,12 @@ const FormFooter = ({ onCancel, onSubmit, isSaving, submitLabel = "Ubah Soal" })
   );
 };
 
+FormFooter.propTypes = {
+  onCancel: PropTypes.func,
+  onSubmit: PropTypes.func,
+  isSaving: PropTypes.bool,
+  submitLabel: PropTypes.string,
+};
+
 export default FormFooter;
+

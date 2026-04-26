@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const EditPageLayout = ({ title, subtitle, children }) => {
   const interStyle = { fontFamily: "'Inter', sans-serif" };
@@ -33,4 +34,11 @@ const EditPageLayout = ({ title, subtitle, children }) => {
   );
 };
 
+EditPageLayout.propTypes = {
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  children: PropTypes.node,
+};
+
 export default EditPageLayout;
+

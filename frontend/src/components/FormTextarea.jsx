@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 
 const FormTextarea = ({ 
   label, 
@@ -38,4 +39,17 @@ const FormTextarea = ({
   );
 };
 
+FormTextarea.propTypes = {
+  label: PropTypes.string,
+  value: PropTypes.string,
+  onChange: PropTypes.func,
+  error: PropTypes.string,
+  placeholder: PropTypes.string,
+  rows: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+  minHeight: PropTypes.string,
+  maxHeight: PropTypes.string,
+  className: PropTypes.string,
+};
+
 export default FormTextarea;
+
