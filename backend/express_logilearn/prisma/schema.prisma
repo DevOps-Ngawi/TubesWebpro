@@ -18,6 +18,8 @@ model levels {
   id         Int        @id @default(autoincrement())
   id_section Int
   nama       String
+  deskripsi  String?
+  urutan     Int?
   attempts   attempts[]
   sections   sections   @relation(fields: [id_section], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "levels_section_fk")
   soals      soals[]
