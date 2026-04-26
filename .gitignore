@@ -1,2 +1,7 @@
 frontend_legacy/ 
 node_modules/
+.env
+.env.*
+coverage/
+*.log
+.DS_Store
