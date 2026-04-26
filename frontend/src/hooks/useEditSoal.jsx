@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 /**
@@ -7,7 +7,7 @@ import { useParams, useNavigate } from 'react-router-dom';
  * @param {Object} options
  * @param {string} options.apiUrl - Base URL API (tanpa ID), e.g. 'http://localhost:3030/api/soal-esai'
  * @param {Function} options.onFetchSuccess - Callback saat fetch berhasil, menerima `datas` dari response
- * @returns {{ loadingFetch, isSaving, error, setError, levelId, handleSave }}
+ * @returns {{ loadingFetch, isSaving, error, setError, levelId, handleSave, refetch, isDirty, markAsDirty, handleCancel }}
  */
 export default function useEditSoal({ apiUrl, onFetchSuccess }) {
   const { id } = useParams();
@@ -17,36 +17,52 @@ export default function useEditSoal({ apiUrl, onFetchSuccess }) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [levelId, setLevelId] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
+
+  const fetchDetailSoal = useCallback(async () => {
+    try {
+      setLoadingFetch(true);
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${apiUrl}/${id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const result = await response.json();
+
+      if (result.payload?.datas) {
+        setLevelId(result.payload.datas.id_level);
+        onFetchSuccess(result.payload.datas);
+      }
+      setIsDirty(false); // Reset dirty state on fetch
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingFetch(false);
+    }
+  }, [apiUrl, id, onFetchSuccess]);
 
   useEffect(() => {
-    const fetchDetailSoal = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${apiUrl}/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const result = await response.json();
-
-        if (result.payload?.datas) {
-          setLevelId(result.payload.datas.id_level);
-          onFetchSuccess(result.payload.datas);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoadingFetch(false);
-      }
-    };
-
     if (id) fetchDetailSoal();
-  }, [id]);
+  }, [id, fetchDetailSoal]);
+
+  const refetch = () => {
+    fetchDetailSoal();
+  };
+
+  const markAsDirty = () => {
+    if (!isDirty) setIsDirty(true);
+  };
+
+  const handleCancel = () => {
+    if (isDirty) {
+      const confirmLeave = window.confirm('Ada perubahan yang belum disimpan. Yakin ingin membatalkan?');
+      if (confirmLeave) navigate(-1);
+    } else {
+      navigate(-1);
+    }
+  };
 
   /**
    * Simpan perubahan soal ke API.
-   *
-   * @param {Object} options
-   * @param {Object} options.body - Request body untuk PUT
-   * @param {Function} [options.validate] - Fungsi validasi, return string error atau falsy jika valid
    */
   const handleSave = async ({ body, validate }) => {
     setError('');
@@ -72,6 +88,7 @@ export default function useEditSoal({ apiUrl, onFetchSuccess }) {
       });
 
       if (response.ok) {
+        setIsDirty(false); // Reset dirty state on success
         navigate(`/list-soal/${levelId}`, { state: { message: "Soal berhasil diubah!" } });
       } else {
         const result = await response.json();
@@ -84,5 +101,17 @@ export default function useEditSoal({ apiUrl, onFetchSuccess }) {
     }
   };
 
-  return { loadingFetch, isSaving, error, setError, levelId, handleSave, navigate };
+  return { 
+    loadingFetch, 
+    isSaving, 
+    error, 
+    setError, 
+    levelId, 
+    handleSave, 
+    navigate, 
+    refetch, 
+    isDirty, 
+    markAsDirty, 
+    handleCancel 
+  };
 }
