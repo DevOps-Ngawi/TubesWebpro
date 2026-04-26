@@ -286,6 +286,49 @@ class Attempt {
       throw error;
     }
   }
+
+  static async getLeaderboard(levelId = null) {
+    try {
+      const where = levelId ? { id_level: parseInt(levelId) } : {};
+      
+      const leaderboard = await prisma.attempts.groupBy({
+        by: ['id_pelajar'],
+        where,
+        _avg: {
+          skor: true
+        },
+        _count: {
+          id: true
+        },
+        orderBy: {
+          _avg: {
+            skor: 'desc'
+          }
+        },
+        take: 10
+      });
+
+      const studentIds = leaderboard.map(l => l.id_pelajar);
+      const students = await prisma.pelajars.findMany({
+        where: {
+          id: { in: studentIds }
+        }
+      });
+
+      return leaderboard.map(l => {
+        const student = students.find(s => s.id === l.id_pelajar);
+        return {
+          id: l.id_pelajar,
+          nama: student ? student.nama : 'Unknown',
+          username: student ? student.username : 'Unknown',
+          averageScore: l._avg.skor || 0,
+          totalAttempts: l._count.id
+        };
+      }).sort((a, b) => b.averageScore - a.averageScore);
+    } catch (error) {
+      throw error;
+    }
+  }
 }
 
 module.exports = Attempt;
