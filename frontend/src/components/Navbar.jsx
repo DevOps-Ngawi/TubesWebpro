@@ -32,6 +32,12 @@ const Navbar = () => {
 
           <div className="nav-right">
             <div className="nav-links">
+              <button
+                className="nav-link"
+                onClick={() => navigate('/leaderboard')}
+              >
+                Leaderboard
+              </button>
             </div>
             <div className="nav-links">
               <button
