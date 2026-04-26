@@ -44,7 +44,7 @@ export default function DetailAttempt() {
       const token = localStorage.getItem("token");
       const idAdmin = localStorage.getItem("id");
       const response = await fetch(
-        `http://localhost:3030/api/jawaban-esais/${editingId}`,
+        `${import.meta.env.VITE_API_URL}/api/jawaban-esais/${editingId}`,
         {
           method: "PUT",
           headers: {
@@ -92,18 +92,18 @@ export default function DetailAttempt() {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3030/api/attempts/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/attempts/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       if (!response.ok) {
         throw new Error(
-          `Gagal memuat detail attempt: ${response.status} ${response.statusText}`
+          `Gagal memuat detil attempt: ${response.status} ${response.statusText}`
         );
       }
       const data = await response.json();
-      console.log("Detail attempt data:", data);
+      console.log("Detil attempt data:", data);
       const attemptData = data.payload?.datas;
       setAttempt(attemptData);
       setError(null);
@@ -131,7 +131,7 @@ export default function DetailAttempt() {
           <div className="spinner-border text-primary" role="status">
             <span className="visually-hidden">Loading...</span>
           </div>
-          <p className="mt-2 text-muted">Memuat detail attempt...</p>
+          <p className="mt-2 text-muted">Memuat detil attempt...</p>
         </div>
       </>
     );
@@ -163,7 +163,7 @@ export default function DetailAttempt() {
         {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
-            <h1 className="fw-bold mb-1">Detail Attempt</h1>
+            <h1 className="fw-bold mb-1">Detil Attempt</h1>
             <p className="text-muted">Rincian jawaban dan skor siswa</p>
           </div>
           <button

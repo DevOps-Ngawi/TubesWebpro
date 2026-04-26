@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 /** Base URL for the backend API. */
-const API_BASE_URL = 'http://localhost:3030/api';
+const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 /** Minimum number of answer options required. */
 const MIN_OPTIONS = 2;

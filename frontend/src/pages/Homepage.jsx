@@ -50,7 +50,7 @@ const Homepage = () => {
 
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:3030/api/sections", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/sections`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -92,7 +92,7 @@ const Homepage = () => {
     const token = localStorage.getItem('token');
     try {
       setEditLoading(true);
-      const res = await fetch(`http://localhost:3030/api/sections/${editSection.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/sections/${editSection.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ nama: editName })
@@ -117,7 +117,7 @@ const Homepage = () => {
     const token = localStorage.getItem('token');
     try {
       setDeleteLoading(true);
-      const res = await fetch(`http://localhost:3030/api/sections/${deleteSection.id}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/sections/${deleteSection.id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -137,7 +137,7 @@ const Homepage = () => {
     const token = localStorage.getItem('token');
     try {
       setAddLoading(true);
-      const res = await fetch('http://localhost:3030/api/sections', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/sections`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ nama: addName, slug: addName.toLowerCase().replace(/\s+/g, '-') })

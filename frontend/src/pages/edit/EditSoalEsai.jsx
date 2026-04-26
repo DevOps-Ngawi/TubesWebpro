@@ -20,7 +20,7 @@ export default function EditSoalEsai() {
     handleCancel,
     markAsDirty 
   } = useEditSoal({
-    apiUrl: 'http://localhost:3030/api/soal-esai',
+    apiUrl: `${import.meta.env.VITE_API_URL}/api/soal-esai`,
     onFetchSuccess: handleFetchSuccess
   });
 
