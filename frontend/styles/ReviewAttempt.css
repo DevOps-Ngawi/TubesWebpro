@@ -7,10 +7,11 @@
   --muted: #6b7280;
   --radius: 12px;
   --shadow: 0 4px 12px rgba(37,99,235,0.1);
-  font-family: "Inter", sans-serif;
 }
 
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+}
 
 body {
   background: var(--background);
@@ -19,71 +20,70 @@ body {
   color: var(--text);
 }
 
-/* --- Navbar --- */
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background-color: var(--primary); 
-    padding: 1rem 2rem;
-    color: white;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--primary);
+  padding: 1rem 2rem;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 1rem; 
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .nav-brand a {
-    color: white;
-    text-decoration: none;
-    font-size: 1.5rem;
-    font-weight: bold;
+  color: white;
+  text-decoration: none;
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 
 .brand-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: white;
 }
 
 .brand-logo {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
 }
 
 .nav-links a {
-    color: white;
-    text-decoration: none;
-    margin: 0 1rem;
-    font-weight: 500;
+  color: white;
+  text-decoration: none;
+  margin: 0 1rem;
+  font-weight: 500;
 }
 
 .nav-links a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 .nav-logout a {
-    color: white;
-    text-decoration: none;
-    font-weight: 500;
-    background-color: #e63946;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius);
-    transition: background-color 0.2s, opacity 0.2s;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  background-color: #e63946;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius);
+  transition: background-color 0.2s, opacity 0.2s;
 }
 
 .nav-logout a:hover {
-    background-color: #d62828;
-    opacity: 0.9;
+  background-color: #d62828;
+  opacity: 0.9;
 }
 
-.container {
+.review-container {
   width: 90%;
   max-width: 960px;
   margin: 2rem auto;
@@ -93,12 +93,14 @@ body {
   box-shadow: var(--shadow);
 }
 
-h1, h2, h3 {
+.review-container h1,
+.review-container h2,
+.review-container h3 {
   color: var(--primary);
   margin-top: 0;
 }
 
-button {
+.review-btn {
   background: var(--primary);
   color: white;
   border: none;
@@ -108,11 +110,13 @@ button {
   font-weight: 600;
 }
 
-button:hover {
+.review-btn:hover {
   opacity: 0.9;
 }
 
-.input, textarea, select {
+.review-input,
+.review-container textarea,
+.review-container select {
   width: 100%;
   padding: 10px;
   border-radius: var(--radius);
@@ -120,7 +124,7 @@ button:hover {
   margin-bottom: 10px;
 }
 
-.card {
+.review-card {
   border: 1px solid #e5e7eb;
   border-radius: var(--radius);
   padding: 1rem;
@@ -129,11 +133,16 @@ button:hover {
   box-shadow: var(--shadow);
 }
 
-.card h3 { 
-  margin: 0 0 0.5rem 0; 
+.review-card h3 {
+  margin: 0 0 0.5rem 0;
   color: var(--text);
 }
-.small { color: var(--muted); font-size: 0.875rem; }
+
+.small {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
 .icon-btn {
   background: white;
   border: 1px solid #e5e7eb;
