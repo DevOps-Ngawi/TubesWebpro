@@ -5,6 +5,17 @@ import TablePagination from '../components/TablePagination';
 import { useTable } from '../hooks/useTable';
 import './styles/ReviewAttempt.css';
 
+const SortIcon = ({ colKey, sortConfig }) => {
+  if (sortConfig.key !== colKey) {
+    return <span className="ms-1" style={{ opacity: 0.35, fontSize: '0.75rem' }}>⇅</span>;
+  }
+  return (
+    <span className="ms-1" style={{ fontSize: '0.75rem' }}>
+      {sortConfig.direction === 'asc' ? '↑' : '↓'}
+    </span>
+  );
+};
+
 export default function ReviewAttempt() {
   const navigate = useNavigate();
   const [attempts, setAttempts] = useState([]);
@@ -27,7 +38,9 @@ export default function ReviewAttempt() {
     currentItems,
     totalPages,
     filteredCount,
-    indexOfFirstItem
+    indexOfFirstItem,
+    sortConfig,
+    handleSort,
   } = useTable(attempts, ['pelajars.username', 'levels.nama', 'levels.sections.nama'], 10);
 
   useEffect(() => {
@@ -42,7 +55,7 @@ export default function ReviewAttempt() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error("Gagal memuat data attempt.");
-      
+
       const data = await response.json();
       const payloadData = data.payload?.datas;
 
@@ -62,6 +75,12 @@ export default function ReviewAttempt() {
   const getScoreClass = (score) => {
     const numScore = Number(score);
     return numScore >= 75 ? 'text-success' : 'text-danger';
+  };
+
+  const sortableHeaderStyle = {
+    cursor: 'pointer',
+    userSelect: 'none',
+    whiteSpace: 'nowrap',
   };
 
   return (
@@ -121,10 +140,34 @@ export default function ReviewAttempt() {
               <thead className="bg-light">
                 <tr>
                   <th className="px-4 py-3 small fw-bold">NO</th>
-                  <th className="px-4 py-3 small fw-bold">USERNAME</th>
-                  <th className="px-4 py-3 small fw-bold">LEVEL</th>
-                  <th className="px-4 py-3 small fw-bold">SECTION</th>
-                  <th className="px-4 py-3 small fw-bold">SKOR</th>
+                  <th
+                    className="px-4 py-3 small fw-bold"
+                    style={sortableHeaderStyle}
+                    onClick={() => handleSort('pelajars.username')}
+                  >
+                    USERNAME <SortIcon colKey="pelajars.username" sortConfig={sortConfig} />
+                  </th>
+                  <th
+                    className="px-4 py-3 small fw-bold"
+                    style={sortableHeaderStyle}
+                    onClick={() => handleSort('levels.nama')}
+                  >
+                    LEVEL <SortIcon colKey="levels.nama" sortConfig={sortConfig} />
+                  </th>
+                  <th
+                    className="px-4 py-3 small fw-bold"
+                    style={sortableHeaderStyle}
+                    onClick={() => handleSort('levels.sections.nama')}
+                  >
+                    SECTION <SortIcon colKey="levels.sections.nama" sortConfig={sortConfig} />
+                  </th>
+                  <th
+                    className="px-4 py-3 small fw-bold"
+                    style={sortableHeaderStyle}
+                    onClick={() => handleSort('skor')}
+                  >
+                    SKOR <SortIcon colKey="skor" sortConfig={sortConfig} />
+                  </th>
                   <th className="px-4 py-3 small fw-bold text-end">AKSI</th>
                 </tr>
               </thead>
@@ -153,7 +196,7 @@ export default function ReviewAttempt() {
             </table>
           </div>
 
-          <TablePagination 
+          <TablePagination
             totalData={filteredCount}
             startIndex={indexOfFirstItem}
             endIndex={indexOfFirstItem + rowsPerPage}
