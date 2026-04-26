@@ -144,7 +144,9 @@ const DashboardStats = () => {
         labels: {
           padding: 20,
           usePointStyle: true,
-          pointStyleWidth: 12,
+          pointStyle: "circle",
+          boxWidth: 12,
+          boxHeight: 12,
           font: { family: "'Inter', sans-serif", size: 13, weight: "500" },
           color: "#374151",
         },
@@ -208,7 +210,9 @@ const DashboardStats = () => {
         labels: {
           padding: 16,
           usePointStyle: true,
-          pointStyleWidth: 10,
+          pointStyle: "circle",
+          boxWidth: 10,
+          boxHeight: 10,
           font: { family: "'Inter', sans-serif", size: 12, weight: "500" },
           color: "#374151",
         },
