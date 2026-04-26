@@ -7,7 +7,7 @@ function validateLevelInput(nama, idSection, urutan) {
     if (nama.trim().length < 3) return 'nama level minimal 3 karakter'
     if (!idSection) return 'section wajib dipilih'
     if (urutan !== undefined && urutan !== null && urutan !== '') {
-        if (isNaN(urutan) || Number(urutan) < 1) return 'urutan level harus berupa angka positif'
+        if (Number.isNaN(urutan) || Number(urutan) < 1) return 'urutan level harus berupa angka positif'
     }
     return null
 }

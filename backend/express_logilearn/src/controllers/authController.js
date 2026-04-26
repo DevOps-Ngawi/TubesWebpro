@@ -33,10 +33,10 @@ const loginAdmin = async (req, res) => {
 
     const dataLogin = {
       token: token,
-      admin: { 
-        id: admin.id, 
+      admin: {
+        id: admin.id,
         nama: admin.nama,
-        username: admin.username 
+        username: admin.username
       }
     };
 
@@ -123,7 +123,7 @@ const registerPelajar = async (req, res) => {
   }
 };
 
-module.exports = { 
+module.exports = {
   loginAdmin,
   loginPelajar,
   registerPelajar

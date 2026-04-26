@@ -42,7 +42,7 @@ class Attempt {
   static async getAttemptById(id) {
     try {
       const attempt = await prisma.attempts.findUnique({
-        where: { id: parseInt(id) },
+        where: { id: Number.parseInt(id) },
         include: {
           levels: {
             include: {
@@ -76,7 +76,7 @@ class Attempt {
   static async getAttemptsByLevel(levelId) {
     try {
       const attempts = await prisma.attempts.findMany({
-        where: { id_level: parseInt(levelId) },
+        where: { id_level: Number.parseInt(levelId) },
         include: {
           levels: {
             include: {
@@ -113,7 +113,7 @@ class Attempt {
   static async getAttemptsByPelajar(pelajarId) {
     try {
       const attempts = await prisma.attempts.findMany({
-        where: { id_pelajar: parseInt(pelajarId) },
+        where: { id_pelajar: Number.parseInt(pelajarId) },
         include: {
           levels: {
             include: {
@@ -151,9 +151,9 @@ class Attempt {
     try {
       const attempt = await prisma.attempts.create({
         data: {
-          id_level: parseInt(id_level),
-          id_pelajar: parseInt(id_pelajar),
-          skor: parseFloat(skor)
+          id_level: Number.parseInt(id_level),
+          id_pelajar: Number.parseInt(id_pelajar),
+          skor: Number.parseFloat(skor)
         },
         include: {
           levels: {
@@ -173,9 +173,9 @@ class Attempt {
   static async updateAttempt(id, skor) {
     try {
       const attempt = await prisma.attempts.update({
-        where: { id: parseInt(id) },
+        where: { id: Number.parseInt(id) },
         data: {
-          skor: parseFloat(skor)
+          skor: Number.parseFloat(skor)
         },
         include: {
           levels: {
@@ -195,7 +195,7 @@ class Attempt {
   static async deleteAttempt(id) {
     try {
       const attempt = await prisma.attempts.delete({
-        where: { id: parseInt(id) }
+        where: { id: Number.parseInt(id) }
       });
       return attempt;
     } catch (error) {
@@ -208,9 +208,9 @@ class Attempt {
       return await prisma.$transaction(async (tx) => {
         const attempt = await tx.attempts.create({
           data: {
-            id_level: parseInt(id_level),
-            id_pelajar: parseInt(id_pelajar),
-            skor: parseFloat(skor)
+            id_level: Number.parseInt(id_level),
+            id_pelajar: Number.parseInt(id_pelajar),
+            skor: Number.parseFloat(skor)
           }
         });
 
@@ -218,8 +218,8 @@ class Attempt {
           await tx.jawabanPGs.createMany({
             data: jawaban_pgs.map(j => ({
               id_attempt: attempt.id,
-              id_opsi: parseInt(j.id_opsi),
-              skor: parseFloat(j.skor)
+              id_opsi: Number.parseInt(j.id_opsi),
+              skor: Number.parseFloat(j.skor)
             }))
           });
         }
@@ -228,9 +228,9 @@ class Attempt {
           await tx.jawabanEsais.createMany({
             data: jawaban_esais.map(j => ({
               id_attempt: attempt.id,
-              id_soal: parseInt(j.id_soal),
+              id_soal: Number.parseInt(j.id_soal),
               text_jawaban_esai: j.text_jawaban_esai,
-              skor: parseFloat(j.skor)
+              skor: Number.parseFloat(j.skor)
             }))
           });
         }
@@ -244,7 +244,7 @@ class Attempt {
   static async recalculateScore(id) {
     try {
       const attempt = await prisma.attempts.findUnique({
-        where: { id: parseInt(id) },
+        where: { id: Number.parseInt(id) },
         include: {
           levels: {
             include: {
@@ -262,13 +262,13 @@ class Attempt {
 
       if (attempt.jawaban_pgs) {
         attempt.jawaban_pgs.forEach(j => {
-          totalScore += parseFloat(j.skor || 0);
+          totalScore += Number.parseFloat(j.skor || 0);
         });
       }
 
       if (attempt.jawaban_esais) {
         attempt.jawaban_esais.forEach(j => {
-          totalScore += parseFloat(j.skor || 0);
+          totalScore += Number.parseFloat(j.skor || 0);
         });
       }
 
@@ -276,12 +276,55 @@ class Attempt {
       const finalPercentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
 
       return await prisma.attempts.update({
-        where: { id: parseInt(id) },
+        where: { id: Number.parseInt(id) },
         data: {
           skor: finalPercentage
         }
       });
 
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  static async getLeaderboard(levelId = null) {
+    try {
+      const where = levelId ? { id_level: Number.parseInt(levelId) } : {};
+
+      const leaderboard = await prisma.attempts.groupBy({
+        by: ['id_pelajar'],
+        where,
+        _avg: {
+          skor: true
+        },
+        _count: {
+          id: true
+        },
+        orderBy: {
+          _avg: {
+            skor: 'desc'
+          }
+        },
+        take: 10
+      });
+
+      const studentIds = leaderboard.map(l => l.id_pelajar);
+      const students = await prisma.pelajars.findMany({
+        where: {
+          id: { in: studentIds }
+        }
+      });
+
+      return leaderboard.map(l => {
+        const student = students.find(s => s.id === l.id_pelajar);
+        return {
+          id: l.id_pelajar,
+          nama: student ? student.nama : 'Unknown',
+          username: student ? student.username : 'Unknown',
+          averageScore: l._avg.skor || 0,
+          totalAttempts: l._count.id
+        };
+      }).sort((a, b) => b.averageScore - a.averageScore);
     } catch (error) {
       throw error;
     }
