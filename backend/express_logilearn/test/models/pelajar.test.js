@@ -32,4 +32,18 @@ describe('Pelajar Model', () => {
     });
     expect(result).toEqual(mockData);
   });
+
+  test('findPelajarStats() mengembalikan array kosong jika tidak ada data riwayat', async () => {
+    mockPrismaClient.attempts.findMany.mockResolvedValue([]);
+
+    const result = await findPelajarStats(99);
+
+    expect(result).toEqual([]);
+  });
+
+  test('findPelajarStats() meneruskan error jika terjadi kegagalan database', async () => {
+    mockPrismaClient.attempts.findMany.mockRejectedValue(new Error('Koneksi Database Terputus'));
+
+    await expect(findPelajarStats(5)).rejects.toThrow('Koneksi Database Terputus');
+  });
 });
