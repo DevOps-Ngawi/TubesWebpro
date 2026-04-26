@@ -49,8 +49,10 @@ export default function ReviewAttempt() {
     const levelMap = {};
     filteredData.forEach((a) => {
       const levelName = a.levels?.nama || 'Unknown';
-      if (!levelMap[levelName]) levelMap[levelName] = [];
-      levelMap[levelName].push(Number(a.skor || 0));
+      const sectionName = a.levels?.sections?.nama || 'Tanpa Section';
+      const key = `${levelName} (${sectionName})`;
+      if (!levelMap[key]) levelMap[key] = [];
+      levelMap[key].push(Number(a.skor || 0));
     });
 
     let lowestAvgLevel = '-';
@@ -209,7 +211,7 @@ export default function ReviewAttempt() {
                         {Number(attempt.skor).toFixed(2)}
                       </td>
                       <td className="px-4 text-end">
-                        <button className="btn btn-sm btn-outline-primary rounded-pill px-3" onClick={() => navigate(`/detail-attempt/${attempt.id}`)}>Detail</button>
+                        <button className="btn btn-sm btn-outline-primary rounded-pill px-3" onClick={() => navigate(`/detail-attempt/${attempt.id}`)}>Detil</button>
                       </td>
                     </tr>
                   ))
