@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import DashboardStats from '../components/DashboardStats';
 import TablePagination from '../components/TablePagination';
+import { useTable } from '../hooks/useTable';
+import Swal from 'sweetalert2';
 import AddSectionModal from '../components/AddSectionModal';
 import EditSectionModal from '../components/EditSectionModal';
 import DeleteSectionModal from '../components/DeleteSectionModal';
-import { useTable } from '../hooks/useTable';
-import Swal from 'sweetalert2';
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -230,7 +230,7 @@ const Homepage = () => {
             </table>
           </div>
 
-          <TablePagination 
+          <TablePagination
             totalData={filteredCount}
             startIndex={indexOfFirstItem}
             endIndex={indexOfFirstItem + rowsPerPage}
@@ -245,7 +245,7 @@ const Homepage = () => {
 
       <AddSectionModal
         show={showAddModal}
-        onClose={() => { setShowAddModal(false); setAddName(''); setAddError(''); }}
+        onClose={() => { setShowAddModal(false); setAddName(''); }}
         onSubmit={handleAddSubmit}
         addName={addName}
         setAddName={setAddName}
@@ -254,7 +254,7 @@ const Homepage = () => {
 
       <EditSectionModal
         show={showEditModal}
-        onClose={() => { setShowEditModal(false); setEditSection(null); setEditName(''); setEditError(''); }}
+        onClose={() => setShowEditModal(false)}
         onSubmit={handleEditSubmit}
         editName={editName}
         setEditName={setEditName}
@@ -263,7 +263,7 @@ const Homepage = () => {
 
       <DeleteSectionModal
         show={showDeleteModal}
-        onClose={() => { setShowDeleteModal(false); setDeleteSection(null); }}
+        onClose={() => setShowDeleteModal(false)}
         onDelete={handleDeleteConfirm}
         selectedSection={deleteSection}
         deleteLoading={deleteLoading}
