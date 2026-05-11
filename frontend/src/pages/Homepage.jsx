@@ -3,6 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import DashboardStats from '../components/DashboardStats';
 import TablePagination from '../components/TablePagination';
+import AddSectionModal from '../components/AddSectionModal';
+import EditSectionModal from '../components/EditSectionModal';
+import DeleteSectionModal from '../components/DeleteSectionModal';
 import { useTable } from '../hooks/useTable';
 import Swal from 'sweetalert2';
 
@@ -239,6 +242,32 @@ const Homepage = () => {
           />
         </div>
       </div>
+
+      <AddSectionModal
+        show={showAddModal}
+        onClose={() => { setShowAddModal(false); setAddName(''); setAddError(''); }}
+        onSubmit={handleAddSubmit}
+        addName={addName}
+        setAddName={setAddName}
+        addLoading={addLoading}
+      />
+
+      <EditSectionModal
+        show={showEditModal}
+        onClose={() => { setShowEditModal(false); setEditSection(null); setEditName(''); setEditError(''); }}
+        onSubmit={handleEditSubmit}
+        editName={editName}
+        setEditName={setEditName}
+        editLoading={editLoading}
+      />
+
+      <DeleteSectionModal
+        show={showDeleteModal}
+        onClose={() => { setShowDeleteModal(false); setDeleteSection(null); }}
+        onDelete={handleDeleteConfirm}
+        selectedSection={deleteSection}
+        deleteLoading={deleteLoading}
+      />
     </>
   );
 };
