@@ -173,6 +173,17 @@ async function remove(req, res) {
   }
 }
 
+async function getLeaderboard(req, res) {
+  try {
+    const { levelId } = req.params;
+    const data = await Attempt.getLeaderboard(levelId);
+    response(200, data || [], 'Berhasil mendapatkan leaderboard', res);
+  } catch (error) {
+    console.log(error.message);
+    response(500, null, `Terjadi kesalahan server: ${error.message}`, res);
+  }
+}
+
 module.exports = {
   getAllAttempts,
   getAttemptById,
@@ -181,5 +192,6 @@ module.exports = {
   create,
   submitAttempt,
   update,
-  remove
+  remove,
+  getLeaderboard
 };

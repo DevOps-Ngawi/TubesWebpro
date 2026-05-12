@@ -32,7 +32,7 @@ export const useTable = (data, searchFields, initialRows = 5) => {
       const bVal = getNestedValue(b, sortConfig.key) ?? '';
       const aNum = Number(aVal);
       const bNum = Number(bVal);
-      const isNumeric = !isNaN(aNum) && !isNaN(bNum) && aVal !== '' && bVal !== '';
+      const isNumeric = !Number.isNaN(aNum) && !Number.isNaN(bNum) && aVal !== '' && bVal !== '';
       const cmp = isNumeric
         ? aNum - bNum
         : String(aVal).toLowerCase().localeCompare(String(bVal).toLowerCase());

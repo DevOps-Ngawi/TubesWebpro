@@ -15,4 +15,7 @@ router.put('/attempts/:id', verifyLogin, onlyAdmin, attemptController.update);
 
 router.delete('/attempts/:id', verifyLogin, onlyAdmin, attemptController.remove);
 
+router.get('/leaderboard', verifyLogin, attemptController.getLeaderboard);
+router.get('/leaderboard/:levelId', verifyLogin, attemptController.getLeaderboard);
+
 module.exports = router;

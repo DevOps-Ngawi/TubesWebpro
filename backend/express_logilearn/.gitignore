@@ -7,3 +7,4 @@ prisma/migrations
 /src/generated
 node_modules/
 coverage/
+.vercel

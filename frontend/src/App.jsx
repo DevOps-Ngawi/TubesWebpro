@@ -11,6 +11,7 @@ import AddSoalEsai from './pages/add/AddSoalEsai';
 import EditSoalEsai from './pages/edit/EditSoalEsai';
 import EditSoalPG from './pages/edit/EditSoalPG';
 import ListSoal from './pages/ListSoal';
+import Leaderboard from './pages/Leaderboard';
 
 function App() {
   return (
@@ -26,7 +27,6 @@ function App() {
 
         {/* 3. Level */}
         <Route path="/:slugSection/levels" element={<ListLevel />} />
-        {/* <Route path="/levels/:id" element={<DetailLevel/>}/> */}
 
         {/* 4. Soal PG */}
         <Route path="/soal-pg/detail/:id" element={<DetailSoalPG />} />
@@ -42,7 +42,10 @@ function App() {
         <Route path="/review-attempt" element={<ReviewAttempt />} />
         <Route path="/detail-attempt/:id" element={<DetailAttempt />} />
 
-        {/* 7. Review Attempt */}
+        {/* 7. Leaderboard */}
+        <Route path="/leaderboard" element={<Leaderboard />} />
+
+        {/* 8. List Soal */}
         <Route path="/list-soal/:id_level" element={<ListSoal />} />
       </Routes>
     </Router>

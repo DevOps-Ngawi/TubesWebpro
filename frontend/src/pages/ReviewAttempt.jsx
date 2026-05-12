@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as XLSX from 'xlsx';
 import Navbar from '../components/Navbar';
 import TablePagination from '../components/TablePagination';
 import { useTable } from '../hooks/useTable';
@@ -96,6 +97,33 @@ export default function ReviewAttempt() {
     }
   };
 
+  const handleExportExcel = () => {
+    if (!filteredData || filteredData.length === 0) return;
+
+    const exportData = filteredData.map((attempt, index) => ({
+      'NO': index + 1,
+      'USERNAME': attempt.pelajars?.username || '-',
+      'LEVEL': attempt.levels?.nama || '-',
+      'SECTION': attempt.levels?.sections?.nama || '-',
+      'SKOR': Number(attempt.skor).toFixed(2),
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Attempts");
+
+    const wscols = [
+      { wch: 5 },
+      { wch: 20 },
+      { wch: 25 },
+      { wch: 25 },
+      { wch: 10 },
+    ];
+    worksheet['!cols'] = wscols;
+
+    XLSX.writeFile(workbook, `LogiLearn_Attempts_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   const getScoreClass = (score) => {
     const numScore = Number(score);
     return numScore >= 75 ? 'text-success' : 'text-danger';
@@ -149,13 +177,23 @@ export default function ReviewAttempt() {
           <div className="card-header bg-white py-3 px-4 border-bottom">
             <div className="d-flex justify-content-between align-items-center">
               <h5 className="mb-0 fw-bold">Attempt Terbaru</h5>
-              <input
-                type="text"
-                className="form-control bg-light border-0 rounded-pill w-25"
-                placeholder="Cari siswa/level..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
+              <div className="d-flex gap-2 w-50 justify-content-end">
+                <button
+                  className="btn btn-success rounded-pill px-4 d-flex align-items-center gap-2"
+                  onClick={handleExportExcel}
+                  disabled={filteredData.length === 0}
+                >
+                  <i className="bi bi-file-earmark-excel"></i>
+                  <span>Export Excel</span>
+                </button>
+                <input
+                  type="text"
+                  className="form-control bg-light border-0 rounded-pill w-50"
+                  placeholder="Cari siswa/level..."
+                  value={searchTerm}
+                  onChange={handleSearch}
+                />
+              </div>
             </div>
           </div>
 

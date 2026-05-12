@@ -29,7 +29,7 @@ const AddLevelModal = ({
     if (!selectedSectionId || selectedSectionId === "") {
       newErrors.section = "Section wajib dipilih.";
     }
-    if (newLevelOrder !== "" && (isNaN(newLevelOrder) || Number(newLevelOrder) < 1)) {
+    if (newLevelOrder !== "" && (Number.isNaN(newLevelOrder) || Number(newLevelOrder) < 1)) {
       newErrors.order = "Urutan level harus berupa angka positif.";
     }
     setErrors(newErrors);
