@@ -19,7 +19,18 @@ const dashboardRouter = require('./src/routes/dashboardRoutes');
 
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',').map(o => o.trim());
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+
+    // Check if the origin is in the allowed list or is a localhost/127.0.0.1 origin
+    const isLocal = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:') || origin === 'http://localhost' || origin === 'http://127.0.0.1';
+    if (allowedOrigins.includes(origin) || isLocal) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
 }));
@@ -38,10 +49,10 @@ app.use('/api', jawabanEsaiRouter)
 app.use('/api', dashboardRouter)
 
 app.get('/', (req, res) => {
-    res.send('Hello world')
+  res.send('Hello world')
 })
 
 app.listen(port, () => {
-    console.log(`App listening on port ${port}`)
+  console.log(`App listening on port ${port}`)
 })
 module.exports = app;
