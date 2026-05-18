@@ -149,6 +149,44 @@ class Attempt {
 
   static async createAttempt(id_level, id_pelajar, skor) {
     try {
+      const latestAttempt = await prisma.attempts.findFirst({
+        where: {
+          id_level: Number.parseInt(id_level),
+          id_pelajar: Number.parseInt(id_pelajar)
+        },
+        orderBy: {
+          id: 'desc'
+        }
+      });
+
+      if (latestAttempt && latestAttempt.skor < 75) {
+        console.log(`[OVERWRITE ATTEMPT] Attempt ${latestAttempt.id} score is ${latestAttempt.skor} (< 75). Overwriting...`);
+        
+        await prisma.jawabanPGs.deleteMany({
+          where: { id_attempt: latestAttempt.id }
+        });
+        await prisma.jawabanEsais.deleteMany({
+          where: { id_attempt: latestAttempt.id }
+        });
+
+        const updatedAttempt = await prisma.attempts.update({
+          where: { id: latestAttempt.id },
+          data: {
+            skor: Number.parseFloat(skor)
+          },
+          include: {
+            levels: {
+              include: {
+                sections: true
+              }
+            },
+            pelajars: true
+          }
+        });
+        
+        return updatedAttempt;
+      }
+
       const attempt = await prisma.attempts.create({
         data: {
           id_level: Number.parseInt(id_level),
