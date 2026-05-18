@@ -5,6 +5,9 @@ import DashboardStats from '../components/DashboardStats';
 import TablePagination from '../components/TablePagination';
 import { useTable } from '../hooks/useTable';
 import Swal from 'sweetalert2';
+import AddSectionModal from '../components/AddSectionModal';
+import EditSectionModal from '../components/EditSectionModal';
+import DeleteSectionModal from '../components/DeleteSectionModal';
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -227,7 +230,7 @@ const Homepage = () => {
             </table>
           </div>
 
-          <TablePagination 
+          <TablePagination
             totalData={filteredCount}
             startIndex={indexOfFirstItem}
             endIndex={indexOfFirstItem + rowsPerPage}
@@ -239,6 +242,32 @@ const Homepage = () => {
           />
         </div>
       </div>
+
+      <AddSectionModal
+        show={showAddModal}
+        onClose={() => { setShowAddModal(false); setAddName(''); }}
+        onSubmit={handleAddSubmit}
+        addName={addName}
+        setAddName={setAddName}
+        addLoading={addLoading}
+      />
+
+      <EditSectionModal
+        show={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditSubmit}
+        editName={editName}
+        setEditName={setEditName}
+        editLoading={editLoading}
+      />
+
+      <DeleteSectionModal
+        show={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDelete={handleDeleteConfirm}
+        selectedSection={deleteSection}
+        deleteLoading={deleteLoading}
+      />
     </>
   );
 };
