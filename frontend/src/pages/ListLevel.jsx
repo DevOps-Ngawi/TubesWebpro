@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import "./styles/ListLevel.css";
@@ -23,6 +23,7 @@ const LevelPage = () => {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [sections, setSections] = useState([]);
+  const [sectionName, setSectionName] = useState("");
   const [newLevelName, setNewLevelName] = useState("");
   const [newLevelDescription, setNewLevelDescription] = useState("");
   const [newLevelOrder, setNewLevelOrder] = useState("");
@@ -236,9 +237,30 @@ const LevelPage = () => {
     }
   };
 
-  const filteredLevels = levels.filter((level) => {
-    const levelName = level.nama_level?.toLowerCase() || "";
-    const sectionName = level.nama_section?.toLowerCase() || "";
+  const [sortBy, setSortBy] = useState('oldest');
+
+  const sortedLevels = useMemo(() => {
+    return [...levels].sort((a, b) => {
+      if (sortBy === 'az') {
+        const aName = a.nama || a.nama_level || '';
+        const bName = b.nama || b.nama_level || '';
+        return aName.localeCompare(bName);
+      } else if (sortBy === 'za') {
+        const aName = a.nama || a.nama_level || '';
+        const bName = b.nama || b.nama_level || '';
+        return bName.localeCompare(aName);
+      } else if (sortBy === 'newest') {
+        return b.id - a.id;
+      } else {
+        // default: oldest
+        return a.id - b.id;
+      }
+    });
+  }, [levels, sortBy]);
+
+  const filteredLevels = sortedLevels.filter((level) => {
+    const levelName = (level.nama || level.nama_level || "").toLowerCase();
+    const sectionName = (level.sections?.nama || level.nama_section || "").toLowerCase();
     const keyword = searchTerm.toLowerCase();
 
     return levelName.includes(keyword) || sectionName.includes(keyword);
@@ -250,6 +272,10 @@ const LevelPage = () => {
   const totalPages = Math.ceil(filteredLevels.length / itemsPerPage);
 
   useEffect(() => {
+    if (slugSection) {
+      localStorage.setItem("current_section_slug", slugSection);
+    }
+
     const fetchSections = async () => {
       const token = localStorage.getItem("token");
 
@@ -272,6 +298,7 @@ const LevelPage = () => {
         const currentSection = fetchedSections.find(s => s.slug === slugSection);
         if (currentSection) {
           setSelectedSectionId(currentSection.id);
+          setSectionName(currentSection.nama);
         }
       } catch (err) {
         console.error(err.message);
@@ -287,33 +314,58 @@ const LevelPage = () => {
       <Navbar />
 
       <div className="container mt-5">
-        <div className="row mb-4 align-items-center">
-          <div className="col d-flex justify-content-between align-items-center">
-            <div>
-              <h1 className="fw-bold mb-1">Daftar Level</h1>
-              <p className="text-muted mb-0">Kelola data level</p>
+        <div className="row mb-4">
+          <div className="col">
+            <div className="mb-3">
+              <button 
+                className="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm fw-semibold" 
+                onClick={() => navigate('/homepage')} 
+                title="Kembali"
+              >
+                <i className="bi bi-arrow-left me-2"></i> Kembali
+              </button>
             </div>
+            <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+              <div>
+                <h1 className="fw-bold mb-1">Daftar Level {sectionName ? `- ${sectionName}` : ''}</h1>
+                <p className="text-muted mb-0">Kelola data level</p>
+              </div>
 
-            <button
-              className="btn btn-success rounded-pill px-4"
-              onClick={() => setShowAddModal(true)}
-            >
-              + Tambah Level
-            </button>
+              <button
+                className="btn btn-success rounded-pill px-4"
+                onClick={() => setShowAddModal(true)}
+              >
+                + Tambah Level
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="row mb-3 align-items-center">
-          <div className="col-md-6">
-            <h5 className="fw-semibold mb-2 mb-md-0">Daftar Level Terbaru</h5>
+          <div className="col-md-4">
+            <h5 className="fw-semibold mb-2 mb-md-0">Daftar Level</h5>
           </div>
 
-          <div className="col-md-6 d-flex justify-content-md-end">
-            <div className="position-relative">
+          <div className="col-md-8 d-flex justify-content-md-end gap-3 align-items-center flex-wrap">
+            <div className="d-flex align-items-center gap-2">
+              <span className="small text-muted fw-semibold text-nowrap">Urutkan:</span>
+              <select 
+                className="form-select bg-light border-0 rounded-pill px-3 fw-semibold text-secondary" 
+                style={{ width: '200px', cursor: 'pointer', fontSize: '14px' }}
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="oldest">Terlama</option>
+                <option value="newest">Terbaru</option>
+                <option value="az">Nama A - Z</option>
+                <option value="za">Nama Z - A</option>
+              </select>
+            </div>
+            <div className="position-relative" style={{ width: '300px' }}>
               <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
               <input
                 type="text"
-                className="form-control ps-5"
+                className="form-control ps-5 rounded-pill bg-light border-0"
                 placeholder="Cari level, section..."
                 value={searchTerm}
                 onChange={(e) => {

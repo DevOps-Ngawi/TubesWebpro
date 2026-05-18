@@ -1,10 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import DashboardStats from '../components/DashboardStats';
 import TablePagination from '../components/TablePagination';
 import { useTable } from '../hooks/useTable';
 import Swal from 'sweetalert2';
+import AddSectionModal from '../components/AddSectionModal';
+import EditSectionModal from '../components/EditSectionModal';
+import DeleteSectionModal from '../components/DeleteSectionModal';
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -28,6 +31,23 @@ const Homepage = () => {
   const [addLoading, setAddLoading] = useState(false);
   const [addError, setAddError] = useState('');
 
+  const [sortBy, setSortBy] = useState('oldest');
+
+  const sortedSections = useMemo(() => {
+    return [...sections].sort((a, b) => {
+      if (sortBy === 'az') {
+        return a.nama.localeCompare(b.nama);
+      } else if (sortBy === 'za') {
+        return b.nama.localeCompare(a.nama);
+      } else if (sortBy === 'oldest') {
+        return a.id - b.id;
+      } else {
+        // default: newest
+        return b.id - a.id;
+      }
+    });
+  }, [sections, sortBy]);
+
   const {
     searchTerm,
     handleSearch,
@@ -39,7 +59,7 @@ const Homepage = () => {
     totalPages,
     filteredCount,
     indexOfFirstItem
-  } = useTable(sections, ['nama'], 5);
+  } = useTable(sortedSections, ['nama'], 5);
 
   const fetchSections = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -174,7 +194,21 @@ const Homepage = () => {
 
         <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
           <div className="card-header bg-white py-3 px-4 border-bottom">
-            <div className="d-flex justify-content-end">
+            <div className="d-flex justify-content-end gap-3 align-items-center flex-wrap">
+              <div className="d-flex align-items-center gap-2">
+                <span className="small text-muted fw-semibold text-nowrap">Urutkan:</span>
+                <select
+                  className="form-select bg-light border-0 rounded-pill px-3 fw-semibold text-secondary"
+                  style={{ width: '200px', cursor: 'pointer', fontSize: '14px' }}
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="oldest">Terlama</option>
+                  <option value="newest">Terbaru</option>
+                  <option value="az">Nama A - Z</option>
+                  <option value="za">Nama Z - A</option>
+                </select>
+              </div>
               <div style={{ position: 'relative', width: '300px' }}>
                 <input
                   type="text"
@@ -188,7 +222,7 @@ const Homepage = () => {
             </div>
           </div>
 
-          <div className="table-responsive">
+          <div className="card-body p-0">
             <table className="table table-hover align-middle mb-0">
               <thead className="bg-light">
                 <tr>
@@ -227,7 +261,7 @@ const Homepage = () => {
             </table>
           </div>
 
-          <TablePagination 
+          <TablePagination
             totalData={filteredCount}
             startIndex={indexOfFirstItem}
             endIndex={indexOfFirstItem + rowsPerPage}
@@ -239,6 +273,32 @@ const Homepage = () => {
           />
         </div>
       </div>
+
+      <AddSectionModal
+        show={showAddModal}
+        onClose={() => { setShowAddModal(false); setAddName(''); }}
+        onSubmit={handleAddSubmit}
+        addName={addName}
+        setAddName={setAddName}
+        addLoading={addLoading}
+      />
+
+      <EditSectionModal
+        show={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSubmit={handleEditSubmit}
+        editName={editName}
+        setEditName={setEditName}
+        editLoading={editLoading}
+      />
+
+      <DeleteSectionModal
+        show={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDelete={handleDeleteConfirm}
+        selectedSection={deleteSection}
+        deleteLoading={deleteLoading}
+      />
     </>
   );
 };

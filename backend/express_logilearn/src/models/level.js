@@ -55,6 +55,7 @@ async function getLevelById(id) {
             id: Number(id)
         },
         include: {
+            sections: true,
             soals: {
                 include: {
                     opsis: true

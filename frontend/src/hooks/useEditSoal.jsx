@@ -89,7 +89,7 @@ export default function useEditSoal({ apiUrl, onFetchSuccess }) {
 
       if (response.ok) {
         setIsDirty(false); // Reset dirty state on success
-        navigate(`/list-soal/${levelId}`, { state: { message: "Soal berhasil diubah!" } });
+        navigate(`/list-soal/${levelId}`, { replace: true, state: { message: "Soal berhasil diubah!" } });
       } else {
         const result = await response.json();
         setError(result.payload?.message || 'Gagal memperbarui soal.');

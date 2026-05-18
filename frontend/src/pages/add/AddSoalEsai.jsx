@@ -37,7 +37,7 @@ export default function AddSoalEsai() {
       });
 
       if (response.ok) {
-        navigate(`/list-soal/${levelId}`, { state: { message: "Soal berhasil ditambahkan!" } });
+        navigate(`/list-soal/${levelId}`, { replace: true, state: { message: "Soal berhasil ditambahkan!" } });
 
       } else {
         const result = await response.json();
