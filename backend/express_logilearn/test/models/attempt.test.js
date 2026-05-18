@@ -7,15 +7,18 @@ jest.mock('@prisma/client', () => {
     attempts: {
       findMany: jest.fn(),
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
     },
     jawabanPGs: {
       createMany: jest.fn(),
+      deleteMany: jest.fn(),
     },
     jawabanEsais: {
       createMany: jest.fn(),
+      deleteMany: jest.fn(),
     },
   };
   mPrisma.$transaction = jest.fn(async (callback) => callback(mPrisma));
