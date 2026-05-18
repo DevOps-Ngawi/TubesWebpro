@@ -24,6 +24,8 @@ const LevelPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [sections, setSections] = useState([]);
   const [newLevelName, setNewLevelName] = useState("");
+  const [newLevelDescription, setNewLevelDescription] = useState("");
+  const [newLevelOrder, setNewLevelOrder] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
@@ -139,6 +141,8 @@ const LevelPage = () => {
         body: JSON.stringify({
           nama: newLevelName,
           idSection: selectedSectionId,
+          deskripsi: newLevelDescription,
+          urutan: newLevelOrder,
         }),
       });
 
@@ -152,7 +156,8 @@ const LevelPage = () => {
 
       setShowAddModal(false);
       setNewLevelName("");
-      setSelectedSectionId("");
+      setNewLevelDescription("");
+      setNewLevelOrder("");
 
       Swal.fire({
         icon: "success",
@@ -236,7 +241,6 @@ const LevelPage = () => {
   const totalPages = Math.ceil(filteredLevels.length / itemsPerPage);
 
   useEffect(() => {
-    fetchLevels();
     const fetchSections = async () => {
       const token = localStorage.getItem("token");
 
@@ -253,7 +257,13 @@ const LevelPage = () => {
           throw new Error(responseJson.payload.message);
         }
 
-        setSections(responseJson.payload.datas || []);
+        const fetchedSections = responseJson.payload.datas || [];
+        setSections(fetchedSections);
+        
+        const currentSection = fetchedSections.find(s => s.slug === slugSection);
+        if (currentSection) {
+          setSelectedSectionId(currentSection.id);
+        }
       } catch (err) {
         console.error(err.message);
       }
@@ -261,7 +271,7 @@ const LevelPage = () => {
 
     fetchLevels();
     fetchSections();
-  }, [navigate]);
+  }, [navigate, slugSection]);
 
   return (
     <>
@@ -464,9 +474,10 @@ const LevelPage = () => {
         onSubmit={handleAddLevel}
         newLevelName={newLevelName}
         setNewLevelName={setNewLevelName}
-        sections={sections}
-        selectedSectionId={selectedSectionId}
-        setSelectedSectionId={setSelectedSectionId}
+        newLevelDescription={newLevelDescription}
+        setNewLevelDescription={setNewLevelDescription}
+        newLevelOrder={newLevelOrder}
+        setNewLevelOrder={setNewLevelOrder}
       />
       <UpdateLevelModal
         show={showUpdateModal}
