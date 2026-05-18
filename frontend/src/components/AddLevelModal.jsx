@@ -10,6 +10,7 @@ const AddLevelModal = ({
   setNewLevelDescription,
   newLevelOrder,
   setNewLevelOrder,
+  isSubmitting,
   sections,
   selectedSectionId,
   setSelectedSectionId,
@@ -25,9 +26,6 @@ const AddLevelModal = ({
       newErrors.nama = "Nama level wajib diisi.";
     } else if (newLevelName.trim().length < 3) {
       newErrors.nama = "Nama level minimal 3 karakter.";
-    }
-    if (!selectedSectionId || selectedSectionId === "") {
-      newErrors.section = "Section wajib dipilih.";
     }
     if (newLevelOrder !== "" && (Number.isNaN(newLevelOrder) || Number(newLevelOrder) < 1)) {
       newErrors.order = "Urutan level harus berupa angka positif.";
@@ -146,32 +144,6 @@ const AddLevelModal = ({
                 </div>
               </div>
 
-              {/* Section */}
-              <div className="mb-2">
-                <label className="form-label fw-semibold text-dark">
-                  Section <span className="text-danger">*</span>
-                </label>
-                <select
-                  className={`form-select rounded-3 ${errors.section ? "is-invalid" : ""}`}
-                  value={selectedSectionId}
-                  onChange={(e) => {
-                    setSelectedSectionId(e.target.value);
-                    if (errors.section) setErrors((prev) => ({ ...prev, section: "" }));
-                  }}
-                >
-                  <option value="">-- Pilih Section --</option>
-                  {sections.map((section) => (
-                    <option key={section.id} value={section.id}>
-                      {section.nama}
-                    </option>
-                  ))}
-                </select>
-                {errors.section && (
-                  <div className="invalid-feedback d-flex align-items-center gap-1">
-                    <span>⚠️</span> {errors.section}
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Footer */}
@@ -183,11 +155,19 @@ const AddLevelModal = ({
                 Batal
               </button>
               <button
-                className="btn btn-success rounded-pill px-4 fw-semibold"
+                className="btn btn-success rounded-pill px-4 fw-semibold d-flex align-items-center gap-2"
                 onClick={handleSubmit}
                 style={{ background: "linear-gradient(135deg, #198754, #20c997)", border: "none" }}
+                disabled={isSubmitting}
               >
-                ✓ Simpan Level
+                {isSubmitting ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    Menyimpan...
+                  </>
+                ) : (
+                  "✓ Simpan Level"
+                )}
               </button>
             </div>
 

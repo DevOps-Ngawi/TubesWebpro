@@ -24,7 +24,10 @@ const LevelPage = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [sections, setSections] = useState([]);
   const [newLevelName, setNewLevelName] = useState("");
+  const [newLevelDescription, setNewLevelDescription] = useState("");
+  const [newLevelOrder, setNewLevelOrder] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateLevelName, setUpdateLevelName] = useState("");
@@ -37,7 +40,7 @@ const LevelPage = () => {
 
   const handleUpdateClick = (level) => {
     setSelectedLevel(level);
-    setUpdateLevelName(level.nama_level);
+    setUpdateLevelName(level.nama);
     setUpdateSectionId(level?.id_section || "");
     setShowUpdateModal(true);
   };
@@ -49,7 +52,7 @@ const LevelPage = () => {
 
   const handleConfirmDelete = async () => {
     if (!selectedLevel) return;
-
+    setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
 
@@ -91,6 +94,8 @@ const LevelPage = () => {
         timer: 2000,
         showConfirmButton: false,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -128,6 +133,7 @@ const LevelPage = () => {
       if (!newLevelName || !selectedSectionId) {
         throw new Error("Nama level dan section wajib diisi");
       }
+      setIsSubmitting(true);
       const token = localStorage.getItem("token");
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/levels`, {
@@ -139,6 +145,8 @@ const LevelPage = () => {
         body: JSON.stringify({
           nama: newLevelName,
           idSection: selectedSectionId,
+          deskripsi: newLevelDescription,
+          urutan: newLevelOrder,
         }),
       });
 
@@ -152,7 +160,8 @@ const LevelPage = () => {
 
       setShowAddModal(false);
       setNewLevelName("");
-      setSelectedSectionId("");
+      setNewLevelDescription("");
+      setNewLevelOrder("");
 
       Swal.fire({
         icon: "success",
@@ -169,6 +178,8 @@ const LevelPage = () => {
         timer: 2000,
         showConfirmButton: false,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -177,6 +188,7 @@ const LevelPage = () => {
       if (!updateLevelName || !updateSectionId) {
         throw new Error("Nama level dan section wajib diisi");
       }
+      setIsSubmitting(true);
       const token = localStorage.getItem("token");
 
       const response = await fetch(
@@ -219,6 +231,8 @@ const LevelPage = () => {
         timer: 2000,
         showConfirmButton: false,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -236,7 +250,6 @@ const LevelPage = () => {
   const totalPages = Math.ceil(filteredLevels.length / itemsPerPage);
 
   useEffect(() => {
-    fetchLevels();
     const fetchSections = async () => {
       const token = localStorage.getItem("token");
 
@@ -253,7 +266,13 @@ const LevelPage = () => {
           throw new Error(responseJson.payload.message);
         }
 
-        setSections(responseJson.payload.datas || []);
+        const fetchedSections = responseJson.payload.datas || [];
+        setSections(fetchedSections);
+        
+        const currentSection = fetchedSections.find(s => s.slug === slugSection);
+        if (currentSection) {
+          setSelectedSectionId(currentSection.id);
+        }
       } catch (err) {
         console.error(err.message);
       }
@@ -261,7 +280,7 @@ const LevelPage = () => {
 
     fetchLevels();
     fetchSections();
-  }, [navigate]);
+  }, [navigate, slugSection]);
 
   return (
     <>
@@ -457,6 +476,7 @@ const LevelPage = () => {
         onClose={() => setShowDeleteModal(false)}
         onDelete={handleConfirmDelete}
         selectedLevel={selectedLevel}
+        isSubmitting={isSubmitting}
       />
       <AddLevelModal
         show={showAddModal}
@@ -464,9 +484,11 @@ const LevelPage = () => {
         onSubmit={handleAddLevel}
         newLevelName={newLevelName}
         setNewLevelName={setNewLevelName}
-        sections={sections}
-        selectedSectionId={selectedSectionId}
-        setSelectedSectionId={setSelectedSectionId}
+        newLevelDescription={newLevelDescription}
+        setNewLevelDescription={setNewLevelDescription}
+        newLevelOrder={newLevelOrder}
+        setNewLevelOrder={setNewLevelOrder}
+        isSubmitting={isSubmitting}
       />
       <UpdateLevelModal
         show={showUpdateModal}
@@ -477,6 +499,7 @@ const LevelPage = () => {
         sections={sections}
         updateSectionId={updateSectionId}
         setUpdateSectionId={setUpdateSectionId}
+        isSubmitting={isSubmitting}
       />
     </>
   );
