@@ -188,6 +188,7 @@ export default function AddSoalPG() {
 
         if (response.ok) {
           navigate(`/list-soal/${levelId}`, {
+            replace: true,
             state: { message: 'Soal berhasil ditambahkan!' },
           });
         } else {
