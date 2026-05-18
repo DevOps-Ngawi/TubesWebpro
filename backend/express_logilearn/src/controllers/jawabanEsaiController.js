@@ -12,7 +12,39 @@ async function create(req, res) {
     const soalData = await Soal.getSoalEsaiById(idSoal)
     const soal = soalData.text_soal
 
-    const result = await nilaiEsai(soal, jawaban)
+    let result;
+    try {
+      result = await nilaiEsai(soal, jawaban)
+    } catch (aiErr) {
+      console.error("AI Grading failed, using fallback:", aiErr.message);
+      
+      let score = 0.5; // Default neutral fallback score
+      let feedback = "Jawaban Anda telah direkam. Penilaian otomatis tertunda karena kendala koneksi AI.";
+
+      if (soalData.kata_kunci) {
+        const keywords = soalData.kata_kunci.toLowerCase().split(',').map(k => k.trim());
+        const lowercaseJawaban = (jawaban || "").toLowerCase();
+        let matches = 0;
+        keywords.forEach(k => {
+          if (lowercaseJawaban.includes(k)) {
+            matches++;
+          }
+        });
+
+        if (matches === keywords.length) {
+          score = 1.0;
+          feedback = "Jawaban Anda benar dan memenuhi semua kata kunci utama.";
+        } else if (matches > 0) {
+          score = Number((matches / keywords.length).toFixed(2));
+          feedback = `Jawaban Anda sebagian benar (cocok ${matches} dari ${keywords.length} kata kunci utama).`;
+        } else {
+          score = 0.0;
+          feedback = "Jawaban kurang tepat karena tidak mengandung kata kunci utama yang diharapkan.";
+        }
+      }
+      
+      result = { score, feedback: feedback + " (Penilaian otomatis cadangan)" };
+    }
 
     const data = await JwbEsai.createJwbEsai(
       idAttempt,
