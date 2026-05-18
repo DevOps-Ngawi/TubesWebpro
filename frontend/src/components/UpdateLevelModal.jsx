@@ -9,6 +9,7 @@ const UpdateLevelModal = ({
   sections,
   updateSectionId,
   setUpdateSectionId,
+  isSubmitting,
 }) => {
   if (!show) return null;
 
@@ -62,10 +63,18 @@ const UpdateLevelModal = ({
                 Batal
               </button>
               <button
-                className="btn btn-success rounded-pill"
+                className="btn btn-success rounded-pill d-flex align-items-center gap-2"
                 onClick={onSubmit}
+                disabled={isSubmitting}
               >
-                Simpan
+                {isSubmitting ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    Menyimpan...
+                  </>
+                ) : (
+                  "Simpan"
+                )}
               </button>
             </div>
           </div>

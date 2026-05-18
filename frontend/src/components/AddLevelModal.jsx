@@ -10,6 +10,7 @@ const AddLevelModal = ({
   setNewLevelDescription,
   newLevelOrder,
   setNewLevelOrder,
+  isSubmitting,
   sections,
   selectedSectionId,
   setSelectedSectionId,
@@ -154,11 +155,19 @@ const AddLevelModal = ({
                 Batal
               </button>
               <button
-                className="btn btn-success rounded-pill px-4 fw-semibold"
+                className="btn btn-success rounded-pill px-4 fw-semibold d-flex align-items-center gap-2"
                 onClick={handleSubmit}
                 style={{ background: "linear-gradient(135deg, #198754, #20c997)", border: "none" }}
+                disabled={isSubmitting}
               >
-                ✓ Simpan Level
+                {isSubmitting ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    Menyimpan...
+                  </>
+                ) : (
+                  "✓ Simpan Level"
+                )}
               </button>
             </div>
 

@@ -1,6 +1,6 @@
 import React from "react";
 
-const DeleteLevelModal = ({ show, onClose, onDelete, selectedLevel }) => {
+const DeleteLevelModal = ({ show, onClose, onDelete, selectedLevel, isSubmitting }) => {
   if (!show) return null;
 
   return (
@@ -20,7 +20,7 @@ const DeleteLevelModal = ({ show, onClose, onDelete, selectedLevel }) => {
 
             <div className="modal-body">
               Apakah anda yakin ingin menghapus level{" "}
-              <strong>{selectedLevel?.nama_level}</strong>?
+              <strong>{selectedLevel?.nama}</strong>?
             </div>
 
             <div className="modal-footer">
@@ -31,10 +31,18 @@ const DeleteLevelModal = ({ show, onClose, onDelete, selectedLevel }) => {
                 Batal
               </button>
               <button
-                className="btn btn-danger rounded-pill"
+                className="btn btn-danger rounded-pill d-flex align-items-center gap-2"
                 onClick={onDelete}
+                disabled={isSubmitting}
               >
-                Hapus
+                {isSubmitting ? (
+                  <>
+                    <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                    Menghapus...
+                  </>
+                ) : (
+                  "Hapus"
+                )}
               </button>
             </div>
           </div>

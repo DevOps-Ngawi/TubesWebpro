@@ -27,6 +27,7 @@ const LevelPage = () => {
   const [newLevelDescription, setNewLevelDescription] = useState("");
   const [newLevelOrder, setNewLevelOrder] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateLevelName, setUpdateLevelName] = useState("");
@@ -39,7 +40,7 @@ const LevelPage = () => {
 
   const handleUpdateClick = (level) => {
     setSelectedLevel(level);
-    setUpdateLevelName(level.nama_level);
+    setUpdateLevelName(level.nama);
     setUpdateSectionId(level?.id_section || "");
     setShowUpdateModal(true);
   };
@@ -51,7 +52,7 @@ const LevelPage = () => {
 
   const handleConfirmDelete = async () => {
     if (!selectedLevel) return;
-
+    setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
 
@@ -93,6 +94,8 @@ const LevelPage = () => {
         timer: 2000,
         showConfirmButton: false,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -130,6 +133,7 @@ const LevelPage = () => {
       if (!newLevelName || !selectedSectionId) {
         throw new Error("Nama level dan section wajib diisi");
       }
+      setIsSubmitting(true);
       const token = localStorage.getItem("token");
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/levels`, {
@@ -174,6 +178,8 @@ const LevelPage = () => {
         timer: 2000,
         showConfirmButton: false,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -182,6 +188,7 @@ const LevelPage = () => {
       if (!updateLevelName || !updateSectionId) {
         throw new Error("Nama level dan section wajib diisi");
       }
+      setIsSubmitting(true);
       const token = localStorage.getItem("token");
 
       const response = await fetch(
@@ -224,6 +231,8 @@ const LevelPage = () => {
         timer: 2000,
         showConfirmButton: false,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -467,6 +476,7 @@ const LevelPage = () => {
         onClose={() => setShowDeleteModal(false)}
         onDelete={handleConfirmDelete}
         selectedLevel={selectedLevel}
+        isSubmitting={isSubmitting}
       />
       <AddLevelModal
         show={showAddModal}
@@ -478,6 +488,7 @@ const LevelPage = () => {
         setNewLevelDescription={setNewLevelDescription}
         newLevelOrder={newLevelOrder}
         setNewLevelOrder={setNewLevelOrder}
+        isSubmitting={isSubmitting}
       />
       <UpdateLevelModal
         show={showUpdateModal}
@@ -488,6 +499,7 @@ const LevelPage = () => {
         sections={sections}
         updateSectionId={updateSectionId}
         setUpdateSectionId={setUpdateSectionId}
+        isSubmitting={isSubmitting}
       />
     </>
   );
