@@ -57,12 +57,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Deploy Backend to Vercel
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: 'team_NdNm92rAgxfuQaY97ibNejWC'
-          vercel-project-id: 'prj_aqSuQQVO7IciEpRUnVJMS1pd2DGa'
-          working-directory: backend/express_logilearn
-          vercel-args: '--prod'
-          
+      # Menggunakan Vercel CLI resmi untuk menghindari proses stuck & limitasi Git Vercel
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull Vercel Environment Information
+        working-directory: backend/express_logilearn
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: 'team_NdNm92rAgxfuQaY97ibNejWC'
+          VERCEL_PROJECT_ID: 'prj_aqSuQQVO7IciEpRUnVJMS1pd2DGa'
+
+      - name: Build Project Artifacts
+        working-directory: backend/express_logilearn
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: 'team_NdNm92rAgxfuQaY97ibNejWC'
+          VERCEL_PROJECT_ID: 'prj_aqSuQQVO7IciEpRUnVJMS1pd2DGa'
+
+      - name: Deploy Project Artifacts to Vercel
+        working-directory: backend/express_logilearn
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: 'team_NdNm92rAgxfuQaY97ibNejWC'
+          VERCEL_PROJECT_ID: 'prj_aqSuQQVO7IciEpRUnVJMS1pd2DGa'
