@@ -7,9 +7,9 @@ const AddSectionModal = ({ show, onClose, onSubmit, addName, setAddName, addLoad
     const validate = () => {
         const newErrors = {};
         if (!addName || addName.trim() === "") {
-            newErrors.nama = "Nama section wajib diisi.";
+            newErrors.nama = "Nama seksi wajib diisi.";
         } else if (addName.trim().length < 3) {
-            newErrors.nama = "Nama section minimal 3 karakter.";
+            newErrors.nama = "Nama seksi minimal 3 karakter.";
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -30,19 +30,18 @@ const AddSectionModal = ({ show, onClose, onSubmit, addName, setAddName, addLoad
         <ModalShell
             show={show}
             onClose={handleClose}
-            title="Tambah Section Baru"
-            icon="📁"
-            gradient="linear-gradient(135deg, #198754 0%, #20c997 100%)"
-            actionLabel="✓ Simpan Section"
+            title="Tambah Seksi Baru"
+            subtitle="Buat seksi pembelajaran logika baru"
+            theme="success"
+            icon={<i className="bi bi-folder-plus fs-4"></i>}
+            actionLabel="Simpan Seksi"
             actionLoadingLabel="Menyimpan..."
-            actionClass="btn-success"
-            actionStyle={{ background: "linear-gradient(135deg, #198754, #20c997)", border: "none" }}
             onAction={handleSubmit}
             isLoading={addLoading}
         >
             <div className="mb-3">
                 <label className="form-label fw-semibold text-dark">
-                    Nama Section <span className="text-danger">*</span>
+                    Nama Seksi <span className="text-danger">*</span>
                 </label>
                 <input
                     type="text"

@@ -4,6 +4,11 @@ import Navbar from "../components/Navbar";
 import "./styles/ListLevel.css";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import UpdateLevelModal from "../components/UpdateLevelModal";
+import DetailSoalModal from "../components/DetailSoalModal";
+import FormSoalEsaiModal from "../components/FormSoalEsaiModal";
+import FormSoalPGModal from "../components/FormSoalPGModal";
+import ModalShell from "../components/ModalShell";
 
 const ListSoal = () => {
   const navigate = useNavigate();
@@ -26,6 +31,103 @@ const ListSoal = () => {
   const [selectedSoal, setSelectedSoal] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [currentLevelObj, setCurrentLevelObj] = useState(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateLevelName, setUpdateLevelName] = useState("");
+  const [updateSectionId, setUpdateSectionId] = useState("");
+  const [sections, setSections] = useState([]);
+
+  // Modals state
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showFormEsaiModal, setShowFormEsaiModal] = useState(false);
+  const [showFormPGModal, setShowFormPGModal] = useState(false);
+  const [selectedSoalForDetail, setSelectedSoalForDetail] = useState(null);
+  const [selectedSoalForEdit, setSelectedSoalForEdit] = useState(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState('');
+  const [loadingEditId, setLoadingEditId] = useState(null);
+  const [loadingDetailId, setLoadingDetailId] = useState(null);
+
+  const fetchData = React.useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const resLevel = await fetch(`${import.meta.env.VITE_API_URL}/api/levels/${id_level}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      let sectionsList = [];
+      // Fetch all sections
+      try {
+        const resSections = await fetch(`${import.meta.env.VITE_API_URL}/api/sections`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (resSections.ok) {
+          const secResult = await resSections.json();
+          sectionsList = secResult.payload?.datas || [];
+          setSections(sectionsList);
+        }
+      } catch (err) {
+        console.error("Gagal mengambil daftar section:", err);
+      }
+
+      if (resLevel.ok) {
+        const result = await resLevel.json();
+        const levelData = result.payload?.datas;
+        
+        if (levelData) {
+          setCurrentLevelObj(levelData);
+          setLevelName(levelData.nama || "Level " + id_level);
+          
+          // Set section slug
+          if (levelData.sections?.slug) {
+            setSectionSlug(levelData.sections.slug);
+            localStorage.setItem("current_section_slug", levelData.sections.slug);
+          } else if (levelData.id_section) {
+            // Fallback
+            const matchedSection = sectionsList.find(s => s.id === levelData.id_section);
+            if (matchedSection?.slug) {
+              setSectionSlug(matchedSection.slug);
+              localStorage.setItem("current_section_slug", matchedSection.slug);
+            }
+          }
+        }
+      }
+
+      const resEsai = await fetch(`${import.meta.env.VITE_API_URL}/api/soal-esai/level/${id_level}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const resPG = await fetch(`${import.meta.env.VITE_API_URL}/api/soals-pg/level/${id_level}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      let listEsai = [];
+      if (resEsai.ok) {
+        const dataEsai = await resEsai.json();
+        listEsai = (dataEsai.payload?.datas || []).map(s => ({ ...s, tipe: 'esai' }));
+      }
+
+      let listPG = [];
+      if (resPG.ok) {
+        const dataPG = await resPG.json();
+        listPG = (dataPG.payload?.datas || []).map(s => ({ ...s, tipe: 'pg' }));
+      }
+
+      setSoals([...listEsai, ...listPG]);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [id_level, navigate]);
+
   useEffect(() => {
     if (location.state?.message) {
       Swal.fire({
@@ -38,85 +140,201 @@ const ListSoal = () => {
       window.history.replaceState({}, document.title);
     }
 
-    const fetchData = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      try {
-        setLoading(true);
-        setError(null);
-        const resLevel = await fetch(`${import.meta.env.VITE_API_URL}/api/levels/${id_level}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (resLevel.ok) {
-          const result = await resLevel.json();
-          const levelData = result.payload?.datas;
-          
-          if (levelData?.nama) {
-            setLevelName(levelData.nama);
-          } else {
-            setLevelName("Level " + id_level);
-          }
-          
-           // Fallback: If section object wasn't included by backend, fetch all sections and match
-          if (levelData?.sections?.slug) {
-            setSectionSlug(levelData.sections.slug);
-            localStorage.setItem("current_section_slug", levelData.sections.slug);
-          } else if (levelData?.id_section) {
-            try {
-              const resSections = await fetch(`${import.meta.env.VITE_API_URL}/api/sections`, {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              if (resSections.ok) {
-                const secResult = await resSections.json();
-                const sectionsList = secResult.payload?.datas || [];
-                const matchedSection = sectionsList.find(s => s.id === levelData.id_section);
-                if (matchedSection?.slug) {
-                  setSectionSlug(matchedSection.slug);
-                  localStorage.setItem("current_section_slug", matchedSection.slug);
-                }
-              }
-            } catch (err) {
-              console.error("Gagal mengambil section slug:", err);
-            }
-          }
-        }
-
-        const resEsai = await fetch(`${import.meta.env.VITE_API_URL}/api/soal-esai/level/${id_level}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        const resPG = await fetch(`${import.meta.env.VITE_API_URL}/api/soals-pg/level/${id_level}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-
-        let listEsai = [];
-        if (resEsai.ok) {
-          const dataEsai = await resEsai.json();
-          listEsai = (dataEsai.payload?.datas || []).map(s => ({ ...s, tipe: 'esai' }));
-        }
-
-        let listPG = [];
-        if (resPG.ok) {
-          const dataPG = await resPG.json();
-          listPG = (dataPG.payload?.datas || []).map(s => ({ ...s, tipe: 'pg' }));
-        }
-
-        setSoals([...listEsai, ...listPG]);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, [id_level, navigate, location]);
+  }, [fetchData, location]);
+
+  const handleUpdateClick = () => {
+    if (currentLevelObj) {
+      setUpdateLevelName(currentLevelObj.nama || "");
+      setUpdateSectionId(currentLevelObj.id_section || "");
+      setShowUpdateModal(true);
+    }
+  };
+
+  const handleUpdateLevel = async () => {
+    try {
+      if (!updateLevelName || !updateSectionId) {
+        throw new Error("Nama level dan section wajib diisi");
+      }
+      setIsSubmitting(true);
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}/api/levels/${id_level}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            nama: updateLevelName,
+            idSection: updateSectionId,
+          }),
+        }
+      );
+
+      const responseJson = await response.json();
+
+      if (responseJson?.payload?.statusCode !== 200) {
+        throw new Error(responseJson.payload.message);
+      }
+
+      setLevelName(updateLevelName);
+      if (currentLevelObj) {
+        setCurrentLevelObj(prev => ({ ...prev, nama: updateLevelName, id_section: updateSectionId }));
+      }
+      
+      const matchedSection = sections.find(s => s.id === Number.parseInt(updateSectionId));
+      if (matchedSection?.slug) {
+        setSectionSlug(matchedSection.slug);
+        localStorage.setItem("current_section_slug", matchedSection.slug);
+      }
+
+      setShowUpdateModal(false);
+
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: "Level berhasil diperbarui",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: `${err.message}`,
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEditSoal = async (soal) => {
+    if (soal.tipe === 'pg') {
+      setLoadingEditId(soal.id);
+      try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/soals-pg/${soal.id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const result = await res.json();
+        if (result.payload?.datas) {
+          setSelectedSoalForEdit(result.payload.datas);
+        } else {
+          setSelectedSoalForEdit(soal);
+        }
+        setShowFormPGModal(true);
+      } catch (err) {
+        setSelectedSoalForEdit(soal);
+        setShowFormPGModal(true);
+      } finally {
+        setLoadingEditId(null);
+      }
+    } else {
+      setSelectedSoalForEdit(soal);
+      setShowFormEsaiModal(true);
+    }
+  };
+
+  const handleEsaiSubmit = async (formData) => {
+    setModalLoading(true);
+    setModalError('');
+    const token = localStorage.getItem('token');
+    
+    try {
+      const isEdit = !!selectedSoalForEdit;
+      const url = isEdit 
+        ? `${import.meta.env.VITE_API_URL}/api/soal-esai/${selectedSoalForEdit.id}`
+        : `${import.meta.env.VITE_API_URL}/api/soal-esai`;
+      
+      const method = isEdit ? 'PUT' : 'POST';
+      const body = isEdit 
+        ? { text_soal: formData.text_soal, kata_kunci: formData.kata_kunci, idSection: currentLevelObj?.id_section || 1 } 
+        : { text_soal: formData.text_soal, kata_kunci: formData.kata_kunci, id_level: Number.parseInt(id_level) };
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      const responseJson = await res.json();
+
+      if (!res.ok) {
+        throw new Error(responseJson.payload?.message || 'Gagal menyimpan soal.');
+      }
+
+      setShowFormEsaiModal(false);
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: isEdit ? 'Soal esai berhasil diperbarui.' : 'Soal esai berhasil ditambahkan.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      fetchData();
+    } catch (err) {
+      setModalError(err.message);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const handlePGSubmit = async (formData) => {
+    setModalLoading(true);
+    setModalError('');
+    const token = localStorage.getItem('token');
+    
+    try {
+      const isEdit = !!selectedSoalForEdit;
+      const url = isEdit 
+        ? `${import.meta.env.VITE_API_URL}/api/soals-pg/${selectedSoalForEdit.id}`
+        : `${import.meta.env.VITE_API_URL}/api/soals-pg`;
+      
+      const method = isEdit ? 'PUT' : 'POST';
+      const body = isEdit 
+        ? { text_soal: formData.text_soal, opsi: formData.opsis.map(o => ({ text_opsi: o.text_opsi, is_correct: o.is_correct })) } 
+        : { text_soal: formData.text_soal, opsi: formData.opsis.map(o => ({ text_opsi: o.text_opsi, is_correct: o.is_correct })), id_level: Number.parseInt(id_level) };
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      const responseJson = await res.json();
+
+      if (!res.ok) {
+        throw new Error(responseJson.payload?.message || 'Gagal menyimpan soal.');
+      }
+
+      setShowFormPGModal(false);
+      Swal.fire({
+        icon: 'success',
+        title: 'Berhasil',
+        text: isEdit ? 'Soal pilihan ganda berhasil diperbarui.' : 'Soal pilihan ganda berhasil ditambahkan.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      fetchData();
+    } catch (err) {
+      setModalError(err.message);
+    } finally {
+      setModalLoading(false);
+    }
+  };
 
   const handleDeleteClick = (soal) => {
     setSelectedSoal(soal);
@@ -229,24 +447,36 @@ const ListSoal = () => {
             </div>
             <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
               <div>
-                <h1 className="fw-bold mb-1">Daftar Soal {levelName ? `- ${levelName}` : ''}</h1>
+                <h1 className="fw-bold mb-1 d-flex align-items-center gap-2">
+                  Daftar Soal {levelName ? `- ${levelName}` : ''}
+                  {currentLevelObj && (
+                    <button 
+                      className="btn btn-sm btn-outline-secondary border-0 p-1 rounded-circle d-inline-flex align-items-center justify-content-center"
+                      onClick={handleUpdateClick}
+                      title="Ubah Nama/Section Level"
+                      style={{ width: '28px', height: '28px', transition: 'all 0.2s' }}
+                    >
+                      <i className="bi bi-pencil-square text-warning" style={{ fontSize: '16px' }}></i>
+                    </button>
+                  )}
+                </h1>
                 <p className="text-muted mb-0">Manajemen Soal</p>
               </div>
             <div className="d-flex gap-2">
               <button
-                className="btn btn-success rounded-pill px-4"
+                className="btn btn-success rounded-pill px-4 shadow-sm fw-semibold"
                 onClick={() => {
-                  localStorage.setItem("current_level_id", id_level);
-                  navigate("/add-soal-pg");
+                  setSelectedSoalForEdit(null);
+                  setShowFormPGModal(true);
                 }}
               >
                 + Tambah Soal PG
               </button>
               <button
-                className="btn btn-success rounded-pill px-4"
+                className="btn btn-success rounded-pill px-4 shadow-sm fw-semibold"
                 onClick={() => {
-                  localStorage.setItem("current_level_id", id_level);
-                  navigate("/soal-esai/add");
+                  setSelectedSoalForEdit(null);
+                  setShowFormEsaiModal(true);
                 }}
               >
                 + Tambah Soal Esai
@@ -333,8 +563,52 @@ const ListSoal = () => {
                       </td>
                       <td className="px-4 text-center">
                         <div className="d-flex gap-2 justify-content-center">
-                          <button className="btn btn-sm btn-outline-primary rounded-pill px-3" onClick={() => navigate(`/soal-${soal.tipe}/detail/${soal.id}`)}>Detil</button>
-                          <button className="btn btn-sm btn-outline-warning rounded-pill px-3" onClick={() => navigate(`/soal-${soal.tipe}/edit/${soal.id}`)}>Ubah</button>
+                          <button 
+                            className="btn btn-sm btn-outline-primary rounded-pill px-3" 
+                            disabled={loadingDetailId !== null || loadingEditId !== null}
+                            onClick={async () => {
+                              setLoadingDetailId(soal.id);
+                              try {
+                                if (soal.tipe === 'pg') {
+                                  const token = localStorage.getItem('token');
+                                  const res = await fetch(`${import.meta.env.VITE_API_URL}/api/soals-pg/${soal.id}`, {
+                                    headers: { Authorization: `Bearer ${token}` }
+                                  });
+                                  const result = await res.json();
+                                  if (result.payload?.datas) {
+                                    setSelectedSoalForDetail(result.payload.datas);
+                                  } else {
+                                    setSelectedSoalForDetail(soal);
+                                  }
+                                } else {
+                                  setSelectedSoalForDetail(soal);
+                                }
+                                setShowDetailModal(true);
+                              } catch (err) {
+                                setSelectedSoalForDetail(soal);
+                                setShowDetailModal(true);
+                              } finally {
+                                setLoadingDetailId(null);
+                              }
+                            }}
+                          >
+                            {loadingDetailId === soal.id ? (
+                              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            ) : (
+                              "Detil"
+                            )}
+                          </button>
+                          <button 
+                            className="btn btn-sm btn-outline-warning rounded-pill px-3" 
+                            disabled={loadingDetailId !== null || loadingEditId !== null}
+                            onClick={() => handleEditSoal(soal)}
+                          >
+                            {loadingEditId === soal.id ? (
+                              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            ) : (
+                              "Ubah"
+                            )}
+                          </button>
                           <button className="btn btn-sm btn-outline-danger rounded-pill px-3" onClick={() => handleDeleteClick(soal)}>Hapus</button>
                         </div>
                       </td>
@@ -401,37 +675,54 @@ const ListSoal = () => {
         </div>
       </div>
 
-      {showDeleteModal && (
-        <>
-          <div className="modal-backdrop show"></div>
-          <div className="modal d-block" tabIndex="-1">
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content border-0 shadow rounded-4">
-                <div className="modal-header border-0">
-                  <h5 className="modal-title fw-bold">Konfirmasi Hapus</h5>
-                  <button className="btn-close" onClick={() => setShowDeleteModal(false)}></button>
-                </div>
-                <div className="modal-body py-0">
-                  Apakah anda yakin ingin menghapus soal <strong>{selectedSoal?.tipe.toUpperCase()}</strong> ini?
-                </div>
-                <div className="modal-footer border-0">
-                  <button className="btn btn-light rounded-pill px-4" onClick={() => setShowDeleteModal(false)} disabled={isSubmitting}>Batal</button>
-                  <button className="btn btn-danger rounded-pill px-4" onClick={handleConfirmDelete} disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Menghapus...
-                      </>
-                    ) : (
-                      "Ya, Hapus"
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <ModalShell
+        show={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Konfirmasi Hapus"
+        subtitle="Tindakan penghapusan data soal"
+        theme="danger"
+        actionLabel="Ya, Hapus"
+        actionLoadingLabel="Menghapus..."
+        onAction={handleConfirmDelete}
+        isLoading={isSubmitting}
+      >
+        Apakah anda yakin ingin menghapus soal <strong>{selectedSoal?.tipe.toUpperCase()}</strong> ini?
+      </ModalShell>
+      <UpdateLevelModal
+        show={showUpdateModal}
+        onClose={() => setShowUpdateModal(false)}
+        onSubmit={handleUpdateLevel}
+        updateLevelName={updateLevelName}
+        setUpdateLevelName={setUpdateLevelName}
+        sections={sections}
+        updateSectionId={updateSectionId}
+        setUpdateSectionId={setUpdateSectionId}
+        isSubmitting={isSubmitting}
+      />
+      <DetailSoalModal
+        show={showDetailModal}
+        onClose={() => setShowDetailModal(false)}
+        onEdit={handleEditSoal}
+        soal={selectedSoalForDetail}
+      />
+      <FormSoalEsaiModal
+        show={showFormEsaiModal}
+        onClose={() => setShowFormEsaiModal(false)}
+        onSubmit={handleEsaiSubmit}
+        soal={selectedSoalForEdit}
+        isLoading={modalLoading}
+        error={modalError}
+        setError={setModalError}
+      />
+      <FormSoalPGModal
+        show={showFormPGModal}
+        onClose={() => setShowFormPGModal(false)}
+        onSubmit={handlePGSubmit}
+        soal={selectedSoalForEdit}
+        isLoading={modalLoading}
+        error={modalError}
+        setError={setModalError}
+      />
     </>
   );
 };
