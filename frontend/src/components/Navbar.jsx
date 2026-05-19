@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import logoImg from '../assets/pose-hai.png';
 import './Navbar.css';
 
@@ -59,11 +60,25 @@ const Navbar = () => {
   const displayedSections = filteredSections;
 
   const handleLogout = () => {
-    const isConfirmed = confirm('Apakah Anda yakin ingin keluar?');
-    if (isConfirmed) {
-      localStorage.removeItem('token');
-      navigate('/login');
-    }
+    Swal.fire({
+      title: 'Keluar Aplikasi?',
+      text: 'Apakah Anda yakin ingin keluar dari akun admin?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#2977ff',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Ya, Keluar',
+      cancelButtonText: 'Batal',
+      customClass: {
+        confirmButton: 'rounded-pill px-4',
+        cancelButton: 'rounded-pill px-4 text-white'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem('token');
+        navigate('/login', { state: { logoutMessage: 'Anda telah berhasil keluar dari akun.' } });
+      }
+    });
   };
 
   return (
