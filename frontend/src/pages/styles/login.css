@@ -57,3 +57,32 @@
     background-color: #1D5ED4 !important;
     transform: translateY(-1px);
 }
+
+/* Custom Slide In Toast Alert */
+.toast-logout {
+    position: fixed !important;
+    top: 24px !important;
+    right: 24px !important;
+    left: auto !important;
+    bottom: auto !important;
+    min-width: 320px !important;
+    z-index: 99999 !important;
+    margin: 0 !important;
+    animation: toastSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    background: #10b981 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.3), 0 8px 10px -6px rgba(16, 185, 129, 0.3) !important;
+}
+
+@keyframes toastSlideIn {
+    from {
+        transform: translateX(120%) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+}
