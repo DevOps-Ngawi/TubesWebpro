@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ModalShell from "./ModalShell";
 
 const AddLevelModal = ({
   show,
@@ -11,13 +12,8 @@ const AddLevelModal = ({
   newLevelOrder,
   setNewLevelOrder,
   isSubmitting,
-  sections,
-  selectedSectionId,
-  setSelectedSectionId,
 }) => {
   const [errors, setErrors] = useState({});
-
-  if (!show) return null;
 
   // Validasi input sebelum submit
   const validate = () => {
@@ -46,135 +42,86 @@ const AddLevelModal = ({
   };
 
   return (
-    <>
-      <div className="modal-backdrop show"></div>
-      <div className="modal d-block" tabIndex="-1">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content rounded-4 shadow-lg">
-
-            {/* Header */}
-            <div
-              className="modal-header border-0 pb-0"
-              style={{ background: "linear-gradient(135deg, #198754 0%, #20c997 100%)", borderRadius: "1rem 1rem 0 0" }}
-            >
-              <div className="d-flex align-items-center gap-2">
-                <div
-                  className="d-flex align-items-center justify-content-center rounded-circle bg-white"
-                  style={{ width: 36, height: 36 }}
-                >
-                  <span style={{ fontSize: 18 }}>📚</span>
-                </div>
-                <h5 className="modal-title fw-bold text-white mb-0">Tambah Level Baru</h5>
-              </div>
-              <button
-                className="btn-close btn-close-white"
-                onClick={handleClose}
-                aria-label="Tutup"
-              ></button>
-            </div>
-
-            {/* Body */}
-            <div className="modal-body pt-4 px-4">
-
-              {/* Nama Level */}
-              <div className="mb-3">
-                <label className="form-label fw-semibold text-dark">
-                  Nama Level <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="text"
-                  className={`form-control rounded-3 ${errors.nama ? "is-invalid" : ""}`}
-                  placeholder="Contoh: Level Pemula"
-                  value={newLevelName}
-                  onChange={(e) => {
-                    setNewLevelName(e.target.value);
-                    if (errors.nama) setErrors((prev) => ({ ...prev, nama: "" }));
-                  }}
-                />
-                {errors.nama && (
-                  <div className="invalid-feedback d-flex align-items-center gap-1">
-                    <span>⚠️</span> {errors.nama}
-                  </div>
-                )}
-              </div>
-
-              {/* Deskripsi Level (field baru) */}
-              <div className="mb-3">
-                <label className="form-label fw-semibold text-dark">
-                  Deskripsi Level
-                  <span className="text-muted fw-normal ms-1" style={{ fontSize: "0.8rem" }}>(opsional)</span>
-                </label>
-                <textarea
-                  className="form-control rounded-3"
-                  placeholder="Jelaskan tujuan atau konten dari level ini..."
-                  rows={3}
-                  value={newLevelDescription}
-                  onChange={(e) => setNewLevelDescription(e.target.value)}
-                  style={{ resize: "none" }}
-                />
-                <div className="form-text text-muted" style={{ fontSize: "0.75rem" }}>
-                  {(newLevelDescription || "").length}/200 karakter
-                </div>
-              </div>
-
-              {/* Urutan Level (field baru) */}
-              <div className="mb-3">
-                <label className="form-label fw-semibold text-dark">
-                  Urutan Level
-                  <span className="text-muted fw-normal ms-1" style={{ fontSize: "0.8rem" }}>(opsional)</span>
-                </label>
-                <input
-                  type="number"
-                  className={`form-control rounded-3 ${errors.order ? "is-invalid" : ""}`}
-                  placeholder="Contoh: 1"
-                  min="1"
-                  value={newLevelOrder}
-                  onChange={(e) => {
-                    setNewLevelOrder(e.target.value);
-                    if (errors.order) setErrors((prev) => ({ ...prev, order: "" }));
-                  }}
-                />
-                {errors.order && (
-                  <div className="invalid-feedback d-flex align-items-center gap-1">
-                    <span>⚠️</span> {errors.order}
-                  </div>
-                )}
-                <div className="form-text text-muted" style={{ fontSize: "0.75rem" }}>
-                  Menentukan urutan tampil level dalam section.
-                </div>
-              </div>
-
-            </div>
-
-            {/* Footer */}
-            <div className="modal-footer border-0 px-4 pb-4 pt-2 gap-2">
-              <button
-                className="btn btn-outline-secondary rounded-pill px-4"
-                onClick={handleClose}
-              >
-                Batal
-              </button>
-              <button
-                className="btn btn-success rounded-pill px-4 fw-semibold d-flex align-items-center gap-2"
-                onClick={handleSubmit}
-                style={{ background: "linear-gradient(135deg, #198754, #20c997)", border: "none" }}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                    Menyimpan...
-                  </>
-                ) : (
-                  "✓ Simpan Level"
-                )}
-              </button>
-            </div>
-
+    <ModalShell
+      show={show}
+      onClose={handleClose}
+      title="Tambah Level Baru"
+      subtitle="Buat level pembelajaran logika baru"
+      theme="success"
+      icon={<i className="bi bi-journal-plus fs-4"></i>}
+      actionLabel="Simpan Level"
+      actionLoadingLabel="Menyimpan..."
+      onAction={handleSubmit}
+      isLoading={isSubmitting}
+    >
+      {/* Nama Level */}
+      <div className="mb-3">
+        <label className="form-label fw-semibold text-dark">
+          Nama Level <span className="text-danger">*</span>
+        </label>
+        <input
+          type="text"
+          className={`form-control rounded-3 ${errors.nama ? "is-invalid" : ""}`}
+          placeholder="Contoh: Level Pemula"
+          value={newLevelName}
+          onChange={(e) => {
+            setNewLevelName(e.target.value);
+            if (errors.nama) setErrors((prev) => ({ ...prev, nama: "" }));
+          }}
+        />
+        {errors.nama && (
+          <div className="invalid-feedback d-flex align-items-center gap-1">
+            <span>⚠️</span> {errors.nama}
           </div>
+        )}
+      </div>
+
+      {/* Deskripsi Level */}
+      <div className="mb-3">
+        <label className="form-label fw-semibold text-dark">
+          Deskripsi Level
+          <span className="text-muted fw-normal ms-1" style={{ fontSize: "0.8rem" }}>(opsional)</span>
+        </label>
+        <textarea
+          className="form-control rounded-3"
+          placeholder="Jelaskan tujuan atau konten dari level ini..."
+          rows={3}
+          value={newLevelDescription}
+          onChange={(e) => setNewLevelDescription(e.target.value)}
+          style={{ resize: "none" }}
+        />
+        <div className="form-text text-muted" style={{ fontSize: "0.75rem" }}>
+          {(newLevelDescription || "").length}/200 karakter
         </div>
       </div>
-    </>
+
+      {/* Urutan Level */}
+      <div className="mb-3">
+        <label className="form-label fw-semibold text-dark">
+          Urutan Level
+          <span className="text-muted fw-normal ms-1" style={{ fontSize: "0.8rem" }}>(opsional)</span>
+        </label>
+        <input
+          type="number"
+          className={`form-control rounded-3 ${errors.order ? "is-invalid" : ""}`}
+          placeholder="Contoh: 1"
+          min="1"
+          value={newLevelOrder}
+          onChange={(e) => {
+            setNewLevelOrder(e.target.value);
+            if (errors.order) setErrors((prev) => ({ ...prev, order: "" }));
+          }}
+        />
+        {errors.order && (
+          <div className="invalid-feedback d-flex align-items-center gap-1">
+            <span>⚠️</span> {errors.order}
+          </div>
+        )}
+        <div className="form-text text-muted" style={{ fontSize: "0.75rem" }}>
+          Menentukan urutan tampil level dalam seksi.
+        </div>
+      </div>
+    </ModalShell>
   );
 };
 

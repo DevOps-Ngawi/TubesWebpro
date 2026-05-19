@@ -120,7 +120,7 @@ const Homepage = () => {
       if (!res.ok) throw new Error("Gagal mengubah data.");
       setShowEditModal(false);
       fetchSections();
-      Swal.fire('Berhasil!', 'Nama section diperbarui', 'success');
+      Swal.fire('Berhasil!', 'Nama seksi diperbarui', 'success');
     } catch (err) {
       alert(err.message);
     } finally {
@@ -144,7 +144,7 @@ const Homepage = () => {
       if (!res.ok) throw new Error("Gagal menghapus.");
       setShowDeleteModal(false);
       fetchSections();
-      Swal.fire('Berhasil!', 'Section dihapus', 'success');
+      Swal.fire('Berhasil!', 'Seksi dihapus', 'success');
     } catch (err) {
       alert(err.message);
     } finally {
@@ -166,7 +166,7 @@ const Homepage = () => {
       setShowAddModal(false);
       setAddName('');
       fetchSections();
-      Swal.fire('Berhasil!', 'Section baru ditambahkan', 'success');
+      Swal.fire('Berhasil!', 'Seksi baru ditambahkan', 'success');
     } catch (err) {
       alert(err.message);
     } finally {
@@ -182,11 +182,11 @@ const Homepage = () => {
 
         <div className="d-flex justify-content-between align-items-center mb-4">
           <div>
-            <h1 className="fw-bold mb-1">Daftar Section</h1>
-            <p className="text-muted">Kelola data section aplikasi</p>
+            <h1 className="fw-bold mb-1">Daftar Seksi</h1>
+            <p className="text-muted">Kelola data seksi aplikasi</p>
           </div>
           <button className="btn btn-success rounded-pill px-4" onClick={() => setShowAddModal(true)}>
-            + Tambah Section
+            + Tambah Seksi
           </button>
         </div>
 
@@ -213,7 +213,7 @@ const Homepage = () => {
                 <input
                   type="text"
                   className="form-control bg-light border-0 ps-5 rounded-pill"
-                  placeholder="Cari section..."
+                  placeholder="Cari seksi..."
                   value={searchTerm}
                   onChange={handleSearch}
                 />
@@ -227,7 +227,7 @@ const Homepage = () => {
               <thead className="bg-light">
                 <tr>
                   <th className="px-4 py-3 text-secondary small fw-bold">NO</th>
-                  <th className="px-4 py-3 text-secondary small fw-bold">JUDUL SECTION</th>
+                  <th className="px-4 py-3 text-secondary small fw-bold">JUDUL SEKSI</th>
                   <th className="px-4 py-3 text-secondary small fw-bold">JUMLAH LEVEL</th>
                   <th className="px-4 py-3 text-secondary small fw-bold text-center">AKSI</th>
                 </tr>
