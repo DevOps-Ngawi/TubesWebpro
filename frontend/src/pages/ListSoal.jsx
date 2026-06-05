@@ -427,7 +427,22 @@ const ListSoal = () => {
     <>
       <Navbar />
 
-      <div className="container mt-5">
+      <div className="container mt-5" style={{ position: 'relative', minHeight: '400px' }}>
+        {loading && (
+          <div 
+            className="position-absolute w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-white bg-opacity-75 rounded-4 shadow-sm"
+            style={{ 
+              zIndex: 99, 
+              top: 0, 
+              left: 0, 
+              backdropFilter: "blur(5px)",
+              transition: "all 0.3s ease-in-out" 
+            }}
+          >
+            <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
+            <h5 className="fw-semibold text-secondary" style={{ animation: 'pulse 1.8s infinite ease-in-out' }}>Memuat data soal...</h5>
+          </div>
+        )}
         <div className="row mb-4">
           <div className="col">
             <div className="mb-3">
@@ -542,7 +557,7 @@ const ListSoal = () => {
               </thead>
               <tbody>
                 {loading ? (
-                  <tr><td colSpan="4" className="text-center py-5"><div className="spinner-border text-primary" /></td></tr>
+                  <tr><td colSpan="4" className="text-center py-5 text-muted">Memuat data soal...</td></tr>
                 ) : error ? (
                   <tr><td colSpan="4" className="text-center text-danger py-4">{error}</td></tr>
                 ) : currentItems.length === 0 ? (
