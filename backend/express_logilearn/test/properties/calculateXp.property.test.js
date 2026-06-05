@@ -14,7 +14,7 @@ describe('calculateXp — Property-Based Tests', () => {
   it('xp_gained selalu dalam [0, 100] untuk skor valid', () => {
     fc.assert(
       fc.property(
-        fc.float({ min: 0, max: 100, noNaN: true }),
+        fc.double({ min: 0, max: 100, noNaN: true }),
         (score) => {
           const xp = calculateXp(score);
           return xp >= 0 && xp <= 100 && xp === Math.floor(score);
@@ -30,8 +30,8 @@ describe('calculateXp — Property-Based Tests', () => {
     fc.assert(
       fc.property(
         fc.oneof(
-          fc.float({ max: -0.001, noNaN: true }),
-          fc.float({ min: 100.001, max: 1e6, noNaN: true })
+          fc.double({ max: -0.001, noNaN: true }),
+          fc.double({ min: 100.001, max: 1e6, noNaN: true })
         ),
         (invalidScore) => {
           expect(() => calculateXp(invalidScore)).toThrow();

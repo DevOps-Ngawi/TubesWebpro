@@ -100,4 +100,113 @@ function evaluateBadges(context) {
   return newBadgeTypes;
 }
 
-module.exports = { calculateXp, determineRank, evaluateBadges };
+async function process(tx, id_pelajar, skor, id_level, id_attempt) {
+  // 1. Calculate XP gained
+  const xp_gained = calculateXp(skor);
+
+  // 2. Check if pelajar exists
+  const pelajar = await tx.pelajars.findUnique({
+    where: { id: id_pelajar }
+  });
+  if (!pelajar) {
+    const err = new Error('Pelajar tidak ditemukan');
+    err.status = 404;
+    throw err;
+  }
+
+  // 3. Update XP and calculate new total XP
+  const updatedPelajar = await tx.pelajars.update({
+    where: { id: id_pelajar },
+    data: {
+      xp: { increment: xp_gained }
+    }
+  });
+
+  // 4. Determine level rank (ensure rank never decreases)
+  const newRank = determineRank(updatedPelajar.xp);
+  const new_level_rank = Math.max(pelajar.level_rank, newRank);
+  const level_rank_up = new_level_rank > pelajar.level_rank;
+
+  if (new_level_rank !== pelajar.level_rank) {
+    await tx.pelajars.update({
+      where: { id: id_pelajar },
+      data: {
+        level_rank: new_level_rank
+      }
+    });
+  }
+
+  // 5. Evaluate badges
+  // 5.1. Fetch existing badges
+  const pelajarBadges = await tx.pelajar_badges.findMany({
+    where: { id_pelajar },
+    include: { badges: true }
+  });
+  const existingBadgeTypes = pelajarBadges.map(pb => pb.badges.criteria_type);
+
+  // 5.2. Determine isFirstPerfectScore
+  const perfectCount = await tx.attempts.count({
+    where: {
+      id_pelajar,
+      skor: 100,
+      id: { not: id_attempt }
+    }
+  });
+  const isFirstPerfectScore = perfectCount === 0;
+
+  // 5.3. Determine isFirstPassOnLevel
+  const passCount = await tx.attempts.count({
+    where: {
+      id_pelajar,
+      id_level,
+      skor: { gte: 75 },
+      id: { not: id_attempt }
+    }
+  });
+  const isFirstPassOnLevel = passCount === 0;
+
+  // 5.4. Evaluate new badges
+  const newBadgeTypes = evaluateBadges({
+    skor,
+    total_xp: updatedPelajar.xp,
+    id_level,
+    id_pelajar,
+    existingBadgeTypes,
+    isFirstPerfectScore,
+    isFirstPassOnLevel
+  });
+
+  let newBadges = [];
+  if (newBadgeTypes.length > 0) {
+    // Find badge IDs
+    const badgesInDb = await tx.badges.findMany({
+      where: {
+        criteria_type: { in: newBadgeTypes }
+      }
+    });
+
+    if (badgesInDb.length > 0) {
+      await tx.pelajar_badges.createMany({
+        data: badgesInDb.map(b => ({
+          id_pelajar,
+          id_badge: b.id
+        })),
+        skipDuplicates: true
+      });
+      newBadges = badgesInDb.map(b => ({
+        name: b.name,
+        description: b.description
+      }));
+    }
+  }
+
+  return {
+    xp_gained,
+    total_xp: updatedPelajar.xp,
+    level_rank_up,
+    new_level_rank,
+    new_badges: newBadges
+  };
+}
+
+module.exports = { calculateXp, determineRank, evaluateBadges, process };

@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const gamificationService = require('../services/gamificationService');
 
 class Attempt {
   static async getAllAttempts() {
@@ -279,6 +280,66 @@ class Attempt {
       throw error;
     }
   }
+  static async recalculateScoreWithGamification(id) {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const attempt = await tx.attempts.findUnique({
+          where: { id: Number.parseInt(id) },
+          include: {
+            levels: {
+              include: {
+                soals: true
+              }
+            },
+            jawaban_pgs: true,
+            jawaban_esais: true
+          }
+        });
+
+        if (!attempt) return null;
+
+        let totalScore = 0;
+
+        if (attempt.jawaban_pgs) {
+          attempt.jawaban_pgs.forEach(j => {
+            totalScore += Number.parseFloat(j.skor || 0);
+          });
+        }
+
+        if (attempt.jawaban_esais) {
+          attempt.jawaban_esais.forEach(j => {
+            totalScore += Number.parseFloat(j.skor || 0);
+          });
+        }
+
+        const maxScore = attempt.levels && attempt.levels.soals ? attempt.levels.soals.length : 0;
+        const finalPercentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
+
+        const updatedAttempt = await tx.attempts.update({
+          where: { id: Number.parseInt(id) },
+          data: {
+            skor: finalPercentage
+          }
+        });
+
+        const gamificationResult = await gamificationService.process(
+          tx,
+          attempt.id_pelajar,
+          finalPercentage,
+          attempt.id_level,
+          attempt.id
+        );
+
+        return {
+          attempt: updatedAttempt,
+          gamification: gamificationResult
+        };
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+
   static async recalculateScore(id) {
     try {
       const attempt = await prisma.attempts.findUnique({

@@ -155,12 +155,25 @@ describe('Attempt Controller', () => {
       const req = { body: { id_attempt: 1 } };
       const res = mockRes();
       const fakeAttempt = { id: 1, skor: 85 };
-      Attempt.recalculateScore.mockResolvedValue(fakeAttempt);
+      const fakeGamification = {
+        xp_gained: 85,
+        total_xp: 100,
+        level_rank_up: false,
+        new_level_rank: 1,
+        new_badges: []
+      };
+      Attempt.recalculateScoreWithGamification.mockResolvedValue({
+        attempt: fakeAttempt,
+        gamification: fakeGamification
+      });
       
       await submitAttempt(req, res);
       
-      expect(Attempt.recalculateScore).toHaveBeenCalledWith(1);
-      expect(response).toHaveBeenCalledWith(200, fakeAttempt, 'Attempt submitted (score recalculated) successfully', res);
+      expect(Attempt.recalculateScoreWithGamification).toHaveBeenCalledWith(1);
+      expect(response).toHaveBeenCalledWith(200, {
+        ...fakeAttempt,
+        ...fakeGamification
+      }, 'Attempt submitted (score recalculated) successfully', res);
     });
 
     test('id_attempt kosong -> 400', async () => {
@@ -175,7 +188,7 @@ describe('Attempt Controller', () => {
     test('attempt tidak ditemukan saat recalculate -> 404', async () => {
       const req = { body: { id_attempt: 99 } };
       const res = mockRes();
-      Attempt.recalculateScore.mockResolvedValue(null);
+      Attempt.recalculateScoreWithGamification.mockResolvedValue(null);
       
       await submitAttempt(req, res);
       
