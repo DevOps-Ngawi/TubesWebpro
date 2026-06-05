@@ -313,24 +313,12 @@ const LevelPage = () => {
   const currentItems = filteredLevels.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredLevels.length / itemsPerPage);
 
+  // Effect 1: Fetch levels and sections from backend API on mount or when slugSection changes
   useEffect(() => {
-    if (slugSection) {
-      localStorage.setItem("current_section_slug", slugSection);
-      
-      // Update section header state instantly from local memory to avoid lag!
-      if (sections && sections.length > 0) {
-        const localSection = sections.find(s => s.slug === slugSection);
-        if (localSection) {
-          setSelectedSectionId(localSection.id);
-          setSectionName(localSection.nama);
-          setCurrentSectionObj(localSection);
-        }
-      }
-    }
+    fetchLevels();
 
     const fetchSections = async () => {
       const token = localStorage.getItem("token");
-
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/sections`, {
           headers: {
@@ -344,23 +332,29 @@ const LevelPage = () => {
           throw new Error(responseJson.payload.message);
         }
 
-        const fetchedSections = responseJson.payload.datas || [];
-        setSections(fetchedSections);
-        
-        const currentSection = fetchedSections.find(s => s.slug === slugSection);
-        if (currentSection) {
-          setSelectedSectionId(currentSection.id);
-          setSectionName(currentSection.nama);
-          setCurrentSectionObj(currentSection);
-        }
+        setSections(responseJson.payload.datas || []);
       } catch (err) {
         console.error(err.message);
       }
     };
 
-    fetchLevels();
     fetchSections();
-  }, [navigate, slugSection, sections.length]);
+  }, [slugSection, navigate]);
+
+  // Effect 2: Instantly synchronize local section details when slugSection or sections change
+  useEffect(() => {
+    if (slugSection) {
+      localStorage.setItem("current_section_slug", slugSection);
+      if (sections && sections.length > 0) {
+        const currentSection = sections.find(s => s.slug === slugSection);
+        if (currentSection) {
+          setSelectedSectionId(currentSection.id);
+          setSectionName(currentSection.nama);
+          setCurrentSectionObj(currentSection);
+        }
+      }
+    }
+  }, [slugSection, sections]);
 
   return (
     <>
