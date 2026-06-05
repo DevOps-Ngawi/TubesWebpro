@@ -7,9 +7,9 @@ const EditSectionModal = ({ show, onClose, onSubmit, editName, setEditName, edit
     const validate = () => {
         const newErrors = {};
         if (!editName || editName.trim() === "") {
-            newErrors.nama = "Nama section wajib diisi.";
+            newErrors.nama = "Nama seksi wajib diisi.";
         } else if (editName.trim().length < 3) {
-            newErrors.nama = "Nama section minimal 3 karakter.";
+            newErrors.nama = "Nama seksi minimal 3 karakter.";
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -30,24 +30,23 @@ const EditSectionModal = ({ show, onClose, onSubmit, editName, setEditName, edit
         <ModalShell
             show={show}
             onClose={handleClose}
-            title="Ubah Section"
-            icon="✏️"
-            gradient="linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%)"
-            actionLabel="✓ Simpan Perubahan"
+            title="Ubah Seksi"
+            subtitle="Ubah informasi nama seksi pembelajaran"
+            theme="warning"
+            icon={<i className="bi bi-pencil-square fs-4"></i>}
+            actionLabel="Simpan Perubahan"
             actionLoadingLabel="Menyimpan..."
-            actionClass="btn-warning text-white"
-            actionStyle={{ background: "linear-gradient(135deg, #f59e0b, #fbbf24)", border: "none" }}
             onAction={handleSubmit}
             isLoading={editLoading}
         >
             <div className="mb-3">
                 <label className="form-label fw-semibold text-dark">
-                    Nama Section <span className="text-danger">*</span>
+                    Nama Seksi <span className="text-danger">*</span>
                 </label>
                 <input
                     type="text"
                     className={`form-control rounded-3 ${errors.nama ? "is-invalid" : ""}`}
-                    placeholder="Masukkan nama section"
+                    placeholder="Masukkan nama seksi"
                     value={editName}
                     onChange={(e) => {
                         setEditName(e.target.value);

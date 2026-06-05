@@ -8,6 +8,7 @@ import "sweetalert2/dist/sweetalert2.min.css";
 import AddLevelModal from "../components/AddLevelModal";
 import UpdateLevelModal from "../components/UpdateLevelModal";
 import DeleteLevelModal from "../components/DeleteLevelModal";
+import EditSectionModal from "../components/EditSectionModal";
 
 const LevelPage = () => {
   const navigate = useNavigate();
@@ -33,6 +34,11 @@ const LevelPage = () => {
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateLevelName, setUpdateLevelName] = useState("");
   const [updateSectionId, setUpdateSectionId] = useState("");
+
+  const [currentSectionObj, setCurrentSectionObj] = useState(null);
+  const [showEditSectionModal, setShowEditSectionModal] = useState(false);
+  const [editSectionName, setEditSectionName] = useState("");
+  const [editSectionLoading, setEditSectionLoading] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -101,6 +107,7 @@ const LevelPage = () => {
   };
 
   const fetchLevels = async () => {
+    setLoading(true);
     const token = localStorage.getItem("token");
 
     if (!token) {
@@ -237,6 +244,41 @@ const LevelPage = () => {
     }
   };
 
+  const handleEditSectionClick = () => {
+    if (currentSectionObj) {
+      setEditSectionName(currentSectionObj.nama || "");
+      setShowEditSectionModal(true);
+    }
+  };
+
+  const handleEditSectionSubmit = async () => {
+    if (!editSectionName.trim()) {
+      Swal.fire("Peringatan", "Nama section tidak boleh kosong!", "warning");
+      return;
+    }
+    const token = localStorage.getItem('token');
+    try {
+      setEditSectionLoading(true);
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/sections/${currentSectionObj.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ nama: editSectionName })
+      });
+      if (!res.ok) throw new Error("Gagal mengubah data.");
+      
+      setShowEditSectionModal(false);
+      Swal.fire('Berhasil!', 'Nama section diperbarui', 'success');
+      
+      setSectionName(editSectionName);
+      setCurrentSectionObj(prev => ({ ...prev, nama: editSectionName }));
+      setSections(prev => prev.map(s => s.id === currentSectionObj.id ? { ...s, nama: editSectionName } : s));
+    } catch (err) {
+      Swal.fire("Gagal", err.message, "error");
+    } finally {
+      setEditSectionLoading(false);
+    }
+  };
+
   const [sortBy, setSortBy] = useState('oldest');
 
   const sortedLevels = useMemo(() => {
@@ -271,14 +313,12 @@ const LevelPage = () => {
   const currentItems = filteredLevels.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(filteredLevels.length / itemsPerPage);
 
+  // Effect 1: Fetch levels and sections from backend API on mount or when slugSection changes
   useEffect(() => {
-    if (slugSection) {
-      localStorage.setItem("current_section_slug", slugSection);
-    }
+    fetchLevels();
 
     const fetchSections = async () => {
       const token = localStorage.getItem("token");
-
       try {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/sections`, {
           headers: {
@@ -292,28 +332,50 @@ const LevelPage = () => {
           throw new Error(responseJson.payload.message);
         }
 
-        const fetchedSections = responseJson.payload.datas || [];
-        setSections(fetchedSections);
-        
-        const currentSection = fetchedSections.find(s => s.slug === slugSection);
-        if (currentSection) {
-          setSelectedSectionId(currentSection.id);
-          setSectionName(currentSection.nama);
-        }
+        setSections(responseJson.payload.datas || []);
       } catch (err) {
         console.error(err.message);
       }
     };
 
-    fetchLevels();
     fetchSections();
-  }, [navigate, slugSection]);
+  }, [slugSection, navigate]);
+
+  // Effect 2: Instantly synchronize local section details when slugSection or sections change
+  useEffect(() => {
+    if (slugSection) {
+      localStorage.setItem("current_section_slug", slugSection);
+      if (sections && sections.length > 0) {
+        const currentSection = sections.find(s => s.slug === slugSection);
+        if (currentSection) {
+          setSelectedSectionId(currentSection.id);
+          setSectionName(currentSection.nama);
+          setCurrentSectionObj(currentSection);
+        }
+      }
+    }
+  }, [slugSection, sections]);
 
   return (
     <>
       <Navbar />
 
-      <div className="container mt-5">
+      <div className="container mt-5" style={{ position: 'relative', minHeight: '400px' }}>
+        {loading && (
+          <div 
+            className="position-absolute w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-white bg-opacity-75 rounded-4 shadow-sm"
+            style={{ 
+              zIndex: 99, 
+              top: 0, 
+              left: 0, 
+              backdropFilter: "blur(5px)",
+              transition: "all 0.3s ease-in-out" 
+            }}
+          >
+            <div className="spinner-border text-primary mb-3" style={{ width: '3rem', height: '3rem' }} role="status"></div>
+            <h5 className="fw-semibold text-secondary" style={{ animation: 'pulse 1.8s infinite ease-in-out' }}>Memuat data level...</h5>
+          </div>
+        )}
         <div className="row mb-4">
           <div className="col">
             <div className="mb-3">
@@ -327,7 +389,19 @@ const LevelPage = () => {
             </div>
             <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
               <div>
-                <h1 className="fw-bold mb-1">Daftar Level {sectionName ? `- ${sectionName}` : ''}</h1>
+                <h1 className="fw-bold mb-1 d-flex align-items-center gap-2">
+                  Daftar Level {sectionName ? `- ${sectionName}` : ''}
+                  {currentSectionObj && (
+                    <button 
+                      className="btn btn-sm btn-outline-secondary border-0 p-1 rounded-circle d-inline-flex align-items-center justify-content-center"
+                      onClick={handleEditSectionClick}
+                      title="Ubah Nama Seksi"
+                      style={{ width: '28px', height: '28px', transition: 'all 0.2s' }}
+                    >
+                      <i className="bi bi-pencil-square text-warning" style={{ fontSize: '16px' }}></i>
+                    </button>
+                  )}
+                </h1>
                 <p className="text-muted mb-0">Kelola data level</p>
               </div>
 
@@ -366,7 +440,7 @@ const LevelPage = () => {
               <input
                 type="text"
                 className="form-control ps-5 rounded-pill bg-light border-0"
-                placeholder="Cari level, section..."
+                placeholder="Cari level, seksi..."
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
@@ -384,7 +458,7 @@ const LevelPage = () => {
                 <tr>
                   <th className="px-4 py-3">No</th>
                   <th className="px-4 py-3">Nama Level</th>
-                  <th className="px-4 py-3">Section</th>
+                  <th className="px-4 py-3">Seksi</th>
                   <th className="px-4 py-3 text-center">Aksi</th>
                 </tr>
               </thead>
@@ -552,6 +626,14 @@ const LevelPage = () => {
         updateSectionId={updateSectionId}
         setUpdateSectionId={setUpdateSectionId}
         isSubmitting={isSubmitting}
+      />
+      <EditSectionModal
+        show={showEditSectionModal}
+        onClose={() => setShowEditSectionModal(false)}
+        onSubmit={handleEditSectionSubmit}
+        editName={editSectionName}
+        setEditName={setEditSectionName}
+        editLoading={editSectionLoading}
       />
     </>
   );

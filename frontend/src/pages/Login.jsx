@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './styles/login.css'; 
 import mascotImg from '../assets/pose-hai.png';
 
@@ -10,6 +10,17 @@ const LoginAdmin = () => {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+    const [logoutNotice, setLogoutNotice] = useState(location.state?.logoutMessage || '');
+
+    useEffect(() => {
+        if (logoutNotice) {
+            const timer = setTimeout(() => {
+                setLogoutNotice('');
+            }, 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [logoutNotice]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -118,6 +129,23 @@ const LoginAdmin = () => {
                     </button>
                 </form>
             </div>
+
+            {/* Custom Logout Success Notification Toast */}
+            {logoutNotice && (
+                <div className="toast-logout alert alert-dismissible fade show d-flex align-items-center justify-content-between p-3" role="alert">
+                    <div className="d-flex align-items-center gap-2">
+                        <i className="bi bi-check-circle-fill fs-5"></i>
+                        <span className="small fw-semibold">{logoutNotice}</span>
+                    </div>
+                    <button 
+                        type="button" 
+                        className="btn-close btn-close-white p-0 m-0" 
+                        onClick={() => setLogoutNotice('')}
+                        style={{ boxShadow: 'none' }}
+                        aria-label="Close"
+                    ></button>
+                </div>
+            )}
         </div>
     );
 };

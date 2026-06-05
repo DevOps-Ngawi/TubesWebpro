@@ -123,6 +123,14 @@ export default function DetailSoalPG() {
           <div className="d-flex justify-content-end gap-2 mt-4">
             <button
               type="button"
+              className="btn btn-warning px-4 py-2 fw-semibold rounded-3 border-0 text-dark"
+              onClick={() => navigate(`/soal-pg/edit/${id}`)}
+              style={{ ...interStyle, fontSize: '14px' }}
+            >
+              Ubah Soal PG
+            </button>
+            <button
+              type="button"
               className="btn btn-light px-4 py-2 fw-semibold rounded-3 border-0"
               onClick={() => navigate(-1)}
               style={{ ...interStyle, backgroundColor: '#f8fafc', color: '#0f172a', fontSize: '14px' }}

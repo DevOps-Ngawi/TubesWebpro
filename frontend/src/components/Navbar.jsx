@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import logoImg from '../assets/pose-hai.png';
 import './Navbar.css';
 
@@ -59,11 +60,25 @@ const Navbar = () => {
   const displayedSections = filteredSections;
 
   const handleLogout = () => {
-    const isConfirmed = confirm('Apakah Anda yakin ingin keluar?');
-    if (isConfirmed) {
-      localStorage.removeItem('token');
-      navigate('/login');
-    }
+    Swal.fire({
+      title: 'Keluar Aplikasi?',
+      text: 'Apakah Anda yakin ingin keluar dari akun admin?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#2977ff',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Ya, Keluar',
+      cancelButtonText: 'Batal',
+      customClass: {
+        confirmButton: 'rounded-pill px-4',
+        cancelButton: 'rounded-pill px-4 text-white'
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        localStorage.removeItem('token');
+        navigate('/login', { state: { logoutMessage: 'Anda telah berhasil keluar dari akun.' } });
+      }
+    });
   };
 
   return (
@@ -79,8 +94,8 @@ const Navbar = () => {
               <img src={logoImg} alt="LogiLearn Logo" className="brand-logo" />
             </button>
             <span className="brand-separator">|</span>
-            <span 
-              className="brand-subtitle" 
+            <span
+              className="brand-subtitle"
               style={{ cursor: 'pointer' }}
               onClick={() => navigate('/homepage')}
             >
@@ -94,21 +109,21 @@ const Navbar = () => {
                 className="nav-link"
                 onClick={() => setShowDropdown(!showDropdown)}
               >
-                Section <i className="bi bi-chevron-down" style={{ fontSize: '12px', marginLeft: '2px' }}></i>
+                Seksi <i className="bi bi-chevron-down" style={{ fontSize: '12px', marginLeft: '2px' }}></i>
               </button>
               {showDropdown && (
                 <div className="dropdown-menu show" style={{ position: 'absolute', top: '100%', left: '0', minWidth: '250px', marginTop: '0.5rem', padding: '0.5rem', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                   <div className="dropdown-header p-0 mb-2">
                     <div className="d-flex gap-2 align-items-center">
-                      <input 
-                        type="text" 
-                        className="form-control form-control-sm" 
-                        placeholder="Cari section..." 
+                      <input
+                        type="text"
+                        className="form-control form-control-sm"
+                        placeholder="Cari seksi..."
                         value={searchSection}
                         onChange={(e) => setSearchSection(e.target.value)}
                       />
-                      <select 
-                        className="form-select form-select-sm border bg-light text-secondary fw-semibold" 
+                      <select
+                        className="form-select form-select-sm border bg-light text-secondary fw-semibold"
                         style={{ width: '100px', fontSize: '11px', cursor: 'pointer', borderRadius: '4px' }}
                         value={sortOrder}
                         onChange={(e) => setSortOrder(e.target.value)}
@@ -124,8 +139,8 @@ const Navbar = () => {
                   <div className="dropdown-list" style={{ maxHeight: '200px', overflowY: 'auto', overflowX: 'hidden' }}>
                     {displayedSections.length > 0 ? (
                       displayedSections.map(s => (
-                        <button 
-                          key={s.id} 
+                        <button
+                          key={s.id}
                           className="dropdown-item rounded"
                           style={{ whiteSpace: 'normal', wordBreak: 'break-word' }}
                           onClick={() => {
@@ -148,7 +163,7 @@ const Navbar = () => {
                 className="nav-link"
                 onClick={() => navigate('/leaderboard')}
               >
-                Leaderboard
+                Papan Peringkat
               </button>
             </div>
             <div className="nav-links">
@@ -156,7 +171,7 @@ const Navbar = () => {
                 className="nav-link"
                 onClick={() => navigate('/review-attempt')}
               >
-                Review Attempt
+                Ulas Pengerjaan
               </button>
             </div>
             <div className="nav-logout">

@@ -88,7 +88,7 @@ const DashboardStats = () => {
   // --- Stat Cards Data ---
   const statCards = [
     {
-      label: "Total Section",
+      label: "Total Seksi",
       value: totals.sections,
       icon: "bi-folder2-open",
       gradient: "gradient-blue",
@@ -294,10 +294,10 @@ const DashboardStats = () => {
           <div className="chart-card-header">
             <h3 className="chart-card-title">
               <i className="bi bi-bar-chart-fill"></i>
-              Level & Soal per Section
+              Level & Soal per Seksi
             </h3>
             <span className="chart-card-subtitle">
-              {sectionBreakdown.length} section tersedia
+              {sectionBreakdown.length} seksi tersedia
             </span>
           </div>
           <div className="chart-card-body bar-container">
@@ -306,7 +306,7 @@ const DashboardStats = () => {
             ) : (
               <div className="chart-empty">
                 <i className="bi bi-inbox"></i>
-                <p>Belum ada section</p>
+                <p>Belum ada seksi</p>
               </div>
             )}
           </div>
