@@ -44,6 +44,7 @@ const getProfile = async (req, res) => {
     });
 
     const dataProfile = {
+      id: pelajarId,
       nama: pelajar.nama,
       username: pelajar.username,
       statistik: {

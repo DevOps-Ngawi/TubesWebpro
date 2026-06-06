@@ -74,6 +74,7 @@ describe('Pelajar Controller', () => {
       expect(response).toHaveBeenCalledWith(
         200,
         {
+          id: 1,
           nama: 'John Doe',
           username: 'johndoe',
           statistik: {
