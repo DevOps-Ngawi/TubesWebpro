@@ -115,12 +115,38 @@ async function process(tx, id_pelajar, skor, id_level, id_attempt) {
   }
 
   // 3. Update XP and calculate new total XP
-  const updatedPelajar = await tx.pelajars.update({
-    where: { id: id_pelajar },
-    data: {
-      xp: { increment: xp_gained }
+  let updatedPelajar;
+  try {
+    if (Object.prototype.hasOwnProperty.call(pelajar, 'xp')) {
+      try {
+        // Preferred: use atomic increment if supported by Prisma client
+        updatedPelajar = await tx.pelajars.update({
+          where: { id: id_pelajar },
+          data: {
+            xp: { increment: xp_gained }
+          }
+        });
+      } catch (errIncrement) {
+        // Fallback: some Prisma/client versions or DB states may not accept `increment` syntax
+        console.error('Increment update failed, falling back to set:', errIncrement);
+        const newXp = (pelajar.xp || 0) + xp_gained;
+        updatedPelajar = await tx.pelajars.update({
+          where: { id: id_pelajar },
+          data: { xp: newXp }
+        });
+      }
+    } else {
+      // `xp` field is not present on the retrieved model — likely prisma client/schema mismatch
+      console.warn('XP field missing on pelajars model; skipping xp update');
+      updatedPelajar = pelajar; // continue using existing pelajar object downstream
     }
-  });
+  } catch (e) {
+    // If update fails, propagate a clear error
+    console.error('Error updating pelajar XP:', e);
+    const err = new Error('Gagal memperbarui XP pelajar');
+    err.status = 500;
+    throw err;
+  }
 
   // 4. Determine level rank (ensure rank never decreases)
   const newRank = determineRank(updatedPelajar.xp);

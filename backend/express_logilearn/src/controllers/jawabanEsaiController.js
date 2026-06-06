@@ -14,7 +14,7 @@ async function create(req, res) {
 
     let result;
     try {
-      result = await nilaiEsai(soal, jawaban)
+      result = await nilaiEsai(soal, jawaban, soalData.kata_kunci)
     } catch (aiErr) {
       console.error("AI Grading failed, using fallback:", aiErr.message);
       

@@ -86,7 +86,83 @@ const changePassword = async (req, res) => {
   }
 };
 
+const getStats = async (req, res) => {
+  try {
+    const pelajarId = Number.parseInt(req.params.id);
+    if (Number.isNaN(pelajarId)) {
+      return response(400, null, "ID pelajar tidak valid", res);
+    }
+
+    const pelajar = await prisma.pelajars.findUnique({
+      where: { id: pelajarId }
+    });
+
+    if (!pelajar) {
+      return response(404, null, "Pelajar tidak ditemukan", res);
+    }
+
+    const total_badges = await prisma.pelajar_badges.count({
+      where: { id_pelajar: pelajarId }
+    });
+
+    const countHigherXp = await prisma.pelajars.count({
+      where: {
+        xp: { gt: pelajar.xp }
+      }
+    });
+
+    const global_rank = countHigherXp + 1;
+
+    const dataStats = {
+      id: pelajar.id,
+      nama: pelajar.nama,
+      total_xp: pelajar.xp,
+      level_rank: pelajar.level_rank,
+      total_badges,
+      global_rank
+    };
+
+    return response(200, dataStats, "Statistik pelajar berhasil dimuat", res);
+  } catch (error) {
+    return response(500, null, `Terjadi kesalahan: ${error.message}`, res);
+  }
+};
+
+const getBadges = async (req, res) => {
+  try {
+    const pelajarId = Number.parseInt(req.params.id);
+    if (Number.isNaN(pelajarId)) {
+      return response(400, null, "ID pelajar tidak valid", res);
+    }
+
+    const pelajar = await prisma.pelajars.findUnique({
+      where: { id: pelajarId }
+    });
+
+    if (!pelajar) {
+      return response(404, null, "Pelajar tidak ditemukan", res);
+    }
+
+    const pelajarBadges = await prisma.pelajar_badges.findMany({
+      where: { id_pelajar: pelajarId },
+      include: { badges: true }
+    });
+
+    const dataBadges = pelajarBadges.map(pb => ({
+      badge_name: pb.badges.name,
+      badge_description: pb.badges.description,
+      obtained_at: pb.obtained_at
+    }));
+
+    return response(200, dataBadges, "Badge pelajar berhasil dimuat", res);
+  } catch (error) {
+    return response(500, null, `Terjadi kesalahan: ${error.message}`, res);
+  }
+};
+
 module.exports = { 
   getProfile, 
-  changePassword 
+  changePassword,
+  getStats,
+  getBadges
 };

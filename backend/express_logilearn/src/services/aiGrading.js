@@ -1,75 +1,79 @@
-const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
+const { GoogleGenAI } = require("@google/genai");
 
-async function nilaiEsai(soal, jawaban) {
+let aiInstance;
+function getAi() {
+  if (!aiInstance) {
+    aiInstance = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY || "dummy-key"
+    });
+  }
+  return aiInstance;
+}
+
+async function nilaiEsai(question, studentAnswer, keywords) {
   const prompt = `
-  Kamu adalah asisten penilai soal esai.
+Anda adalah dosen logika yang bertugas menilai jawaban esai mahasiswa.
 
-  Soal:
-  ${soal}
+Soal:
+${question}
 
-  Jawaban pelajar:
-  ${jawaban}
+${keywords ? `Kata Kunci Utama yang harus ada/sesuai:\n${keywords}\n` : ''}
+Jawaban Mahasiswa:
+${studentAnswer}
 
-  Aturan penilaian:
-  - Skor antara 0.0 sampai 1.0
-  - 0.0 = salah total
-  - 1.0 = benar dan lengkap
-  - Jawaban sebagian benar diberi skor proporsional
-  - Gunakan Bahasa Indonesia formal
+Berikan penilaian berdasarkan ketepatan konsep dan kecocokan dengan kata kunci utama (jika ada).
+Skor harus berupa nilai desimal antara 0.0 (sangat salah) sampai 1.0 (sangat benar/sempurna).
+Berikan juga umpan balik (feedback) singkat dalam bahasa Indonesia yang konstruktif dan menjelaskan alasan pemberian skor tersebut.
+`;
 
-  TUGAS:
-  1. Tentukan skor
-  2. Berikan feedback singkat (1-3 kalimat)
+  try {
+    const ai = getAi();
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-flash-lite",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: "object",
+          properties: {
+            score: {
+              type: "number",
+              description: "Skor desimal antara 0.0 (salah semua) dan 1.0 (benar sempurna)"
+            },
+            feedback: {
+              type: "string",
+              description: "Umpan balik singkat, jelas, dan konstruktif dalam bahasa Indonesia"
+            }
+          },
+          required: ["score", "feedback"]
+        }
+      }
+    });
 
-  FORMAT OUTPUT (WAJIB JSON VALID):
-  {
-    "score": number,
-    "feedback": string
-  }
+    const data = JSON.parse(response.text.trim());
+    
+    // Pastikan score valid dan antara 0 dan 1
+    let score = parseFloat(data.score);
+    if (isNaN(score)) {
+      score = 0.5;
+    } else if (score > 1.0) {
+      // Jika model memberikan skor 0-100, bagi dengan 100
+      score = score / 100.0;
+    }
+    // Batasi score dalam range 0.0 sampai 1.0
+    score = Math.max(0.0, Math.min(1.0, score));
 
-  JANGAN menambahkan teks di luar JSON.
-  `
-
-  const response = await fetch(GROQ_URL, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: process.env.GROQ_MODEL,
-      messages: [{ role: "user", content: prompt }],
-      temperature: 0.01
-    })
-  })
-
-  const data = await response.json()
-
-  if (data.error) {
-    console.error("GROQ ERROR:", data.error)
-    throw new Error(data.error.message)
-  }
-
-  if (!data.choices || !data.choices.length) {
-    console.error("GROQ RESPONSE:", data)
-    throw new Error("AI response invalid")
-  }
-
-  const raw = data.choices[0].message.content.trim()
-
-  const start = raw.indexOf('{')
-  const end = raw.lastIndexOf('}')
-  if (start === -1 || end === -1 || end <= start) {
-    console.error("RAW AI OUTPUT:", raw)
-    throw new Error("AI output not JSON")
-  }
-
-  const parsed = JSON.parse(raw.substring(start, end + 1))
-
-  return {
-    score: Math.max(0, Math.min(parsed.score, 1)),
-    feedback: parsed.feedback || ""
+    return {
+      score: score,
+      feedback: data.feedback || "Penilaian berhasil dilakukan."
+    };
+  } catch (err) {
+    console.error("Failed to parse Gemini response or generate content:", err);
+    throw new Error("Gagal melakukan penilaian otomatis: " + err.message);
   }
 }
 
-module.exports = { nilaiEsai }
+module.exports = {
+  nilaiEsai,
+  gradeEssay: nilaiEsai
+};

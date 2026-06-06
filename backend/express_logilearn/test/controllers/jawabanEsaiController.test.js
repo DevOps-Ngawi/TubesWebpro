@@ -23,7 +23,7 @@ describe('create()', () => {
         const req = { body: { jawaban: 'Ini jawaban dari soal' }, params: { idSoal: '1', idAttempt: '2' } }
         const res = mockRes()
 
-        Soal.getSoalEsaiById.mockResolvedValue({ text_soal: 'Apa itu AI?' })
+        Soal.getSoalEsaiById.mockResolvedValue({ text_soal: 'Apa itu AI?', kata_kunci: 'kecerdasan, buatan' })
         nilaiEsai.mockResolvedValue({ score: 0.9, feedback: 'Bagus' })
 
         const fakeData = { id: 1, ...req.body }
@@ -33,7 +33,7 @@ describe('create()', () => {
         await create(req, res)
 
         expect(Soal.getSoalEsaiById).toHaveBeenCalledWith('1')
-        expect(nilaiEsai).toHaveBeenCalledWith('Apa itu AI?', 'Ini jawaban dari soal')
+        expect(nilaiEsai).toHaveBeenCalledWith('Apa itu AI?', 'Ini jawaban dari soal', 'kecerdasan, buatan')
         expect(JwbEsai.createJwbEsai).toHaveBeenCalledWith('2', '1', 'Ini jawaban dari soal', 0.9, 'Bagus')
         expect(Attempt.recalculateScore).toHaveBeenCalledWith('2')
         expect(response).toHaveBeenCalledWith(200, fakeData, 'successfully', res)
