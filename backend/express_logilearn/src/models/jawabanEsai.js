@@ -1,5 +1,10 @@
 const prisma = require('./prisma')
 
+function sanitizeString(str) {
+    if (typeof str !== 'string') return str;
+    return str.replace(/\u0000/g, '');
+}
+
 async function getAllJwbEsais() {
     return prisma.jawabanEsais.findMany()
 }
@@ -17,9 +22,9 @@ async function createJwbEsai(idAttempt, idSoal, jawabanEsai, skor, feedback) {
         data: {
             id_attempt: Number(idAttempt),
             id_soal: Number(idSoal),
-            text_jawaban_esai: jawabanEsai,
+            text_jawaban_esai: sanitizeString(jawabanEsai),
             skor: skor,
-            feedback: feedback
+            feedback: sanitizeString(feedback)
         }
     })
 }
@@ -32,7 +37,7 @@ async function updateJwbEsai(id, idAdmin, skor, feedback) {
         data: {
             id_admin: idAdmin,
             skor: skor,
-            feedback: feedback
+            feedback: sanitizeString(feedback)
         }
     })
 }
@@ -42,4 +47,4 @@ module.exports = {
     getJwbEsaiById,
     createJwbEsai,
     updateJwbEsai
-}
+}
