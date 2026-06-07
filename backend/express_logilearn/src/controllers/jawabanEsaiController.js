@@ -9,7 +9,7 @@ async function create(req, res) {
     const { jawaban } = req.body
     const { idSoal, idAttempt } = req.params
 
-    if (!jawaban) {
+    if (jawaban === undefined || jawaban === null) {
       return response(400, null, "Field jawaban wajib diisi", res)
     }
 
@@ -34,8 +34,9 @@ async function create(req, res) {
       let feedback = "Jawaban Anda telah direkam. Penilaian otomatis tertunda karena kendala koneksi AI.";
 
       if (soalData.kata_kunci) {
-          const keywords = soalData.kata_kunci.toLowerCase().split(',').map(k => k.trim()).filter(Boolean);
-          const lowercaseJawaban = jawaban.toLowerCase();
+        const keywords = soalData.kata_kunci.toLowerCase().split(',').map(k => k.trim()).filter(Boolean);
+        const lowercaseJawaban = String(jawaban).toLowerCase();
+        let matches = 0;
         keywords.forEach(k => {
           if (lowercaseJawaban.includes(k)) {
             matches++;
