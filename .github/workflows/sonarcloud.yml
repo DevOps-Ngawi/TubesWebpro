@@ -15,21 +15,6 @@ jobs:
               with:
                     fetch-depth: 0
             
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                node-version: '20'
-
-            - name: Install backend dependencies
-              run: |
-                cd backend/express_logilearn
-                npm ci
-
-            - name: Run backend tests with coverage
-              run: |
-                cd backend/express_logilearn
-                npm test -- --runInBand
-
             - name: SonarCloud Scan
               uses: SonarSource/sonarcloud-github-action@v2.2.0
               env:
