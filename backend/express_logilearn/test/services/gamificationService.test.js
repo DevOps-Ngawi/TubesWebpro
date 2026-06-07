@@ -4,7 +4,7 @@
  * Requirements: 1.1, 1.3, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6
  */
 
-const { calculateXp, evaluateBadges } = require('../../src/services/gamificationService');
+const { calculateXp, calculateXpGainOnLevel, evaluateBadges } = require('../../src/services/gamificationService');
 
 describe('calculateXp(score)', () => {
   describe('Skor valid (0–100)', () => {
@@ -96,6 +96,28 @@ describe('calculateXp(score)', () => {
         expect(calculateXp(score)).toBe(Math.floor(score));
       });
     });
+  });
+});
+
+describe('calculateXpGainOnLevel(score, previousHighestScore)', () => {
+  test('attempt pertama memberi xp sama dengan skor', () => {
+    expect(calculateXpGainOnLevel(60, null)).toBe(60);
+    expect(calculateXpGainOnLevel(75, undefined)).toBe(75);
+  });
+
+  test('attempt baru dengan skor lebih rendah atau sama tidak mendapatkan xp', () => {
+    expect(calculateXpGainOnLevel(50, 60)).toBe(0);
+    expect(calculateXpGainOnLevel(60, 60)).toBe(0);
+  });
+
+  test('attempt baru dengan skor lebih tinggi mendapatkan xp sama dengan selisih skor sebelumnya', () => {
+    expect(calculateXpGainOnLevel(70, 60)).toBe(10);
+    expect(calculateXpGainOnLevel(90, 80)).toBe(10);
+    expect(calculateXpGainOnLevel(100, 95)).toBe(5);
+  });
+
+  test('jika previous highest score adalah 0, xp yang didapat adalah selisih dengan 0', () => {
+    expect(calculateXpGainOnLevel(1, 0)).toBe(1);
   });
 });
 

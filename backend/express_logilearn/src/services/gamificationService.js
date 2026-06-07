@@ -27,6 +27,33 @@ function calculateXp(score) {
 }
 
 /**
+ * Menghitung XP yang dapat diperoleh pada sebuah level berdasarkan skor saat ini
+ * dan skor tertinggi sebelumnya di level tersebut.
+ *
+ * Rule:
+ *   - Untuk attempt pertama di level, XP = calculateXp(score)
+ *   - Jika skor sekarang <= skor tertinggi sebelumnya, XP = 0
+ *   - Jika skor sekarang > skor tertinggi sebelumnya, XP = 100 - calculateXp(previousHighestScore)
+ *
+ * @param {number} score
+ * @param {number|null|undefined} previousHighestScore
+ * @returns {number}
+ */
+function calculateXpGainOnLevel(score, previousHighestScore) {
+  const currentXp = calculateXp(score);
+  if (previousHighestScore === null || previousHighestScore === undefined) {
+    return currentXp;
+  }
+
+  const previousXp = calculateXp(previousHighestScore);
+  if (currentXp <= previousXp) {
+    return 0;
+  }
+
+  return currentXp - previousXp;
+}
+
+/**
  * Menentukan Level Rank berdasarkan total XP kumulatif pelajar.
  *
  * Threshold:
@@ -101,10 +128,21 @@ function evaluateBadges(context) {
 }
 
 async function process(tx, id_pelajar, skor, id_level, id_attempt) {
-  // 1. Calculate XP gained
-  const xp_gained = calculateXp(skor);
+  // 1. Determine the highest previous attempt score for this student and level
+  const previousBestAttempt = await tx.attempts.findFirst({
+    where: {
+      id_pelajar,
+      id_level,
+      id: { not: id_attempt }
+    },
+    orderBy: { skor: 'desc' }
+  });
+  const previousHighestScore = previousBestAttempt ? previousBestAttempt.skor : null;
 
-  // 2. Check if pelajar exists
+  // 2. Calculate XP gained based on the highest previous score on the same level
+  const xp_gained = calculateXpGainOnLevel(skor, previousHighestScore);
+
+  // 3. Check if pelajar exists
   const pelajar = await tx.pelajars.findUnique({
     where: { id: id_pelajar }
   });
@@ -235,4 +273,4 @@ async function process(tx, id_pelajar, skor, id_level, id_attempt) {
   };
 }
 
-module.exports = { calculateXp, determineRank, evaluateBadges, process };
+module.exports = { calculateXp, calculateXpGainOnLevel, determineRank, evaluateBadges, process };

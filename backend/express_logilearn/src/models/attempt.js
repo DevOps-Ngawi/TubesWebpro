@@ -125,25 +125,6 @@ class Attempt {
       throw new Error('Invalid level or pelajar ID');
     }
 
-    const latestAttempt = await prisma.attempts.findFirst({
-      where: {
-        id_level: levelId,
-        id_pelajar: pelajarId
-      },
-      orderBy: { id: 'desc' }
-    });
-
-    if (latestAttempt && latestAttempt.skor < 75) {
-      await prisma.jawabanPGs.deleteMany({ where: { id_attempt: latestAttempt.id } });
-      await prisma.jawabanEsais.deleteMany({ where: { id_attempt: latestAttempt.id } });
-
-      return prisma.attempts.update({
-        where: { id: latestAttempt.id },
-        data: { skor: normalizeScore(skor) },
-        include: ATTEMPT_SUMMARY_INCLUDE
-      });
-    }
-
     return prisma.attempts.create({
       data: {
         id_level: levelId,
