@@ -83,6 +83,17 @@ describe('Attempt Controller', () => {
       
       expect(response).toHaveBeenCalledWith(404, null, 'Attempt tidak ditemukan', res);
     });
+
+    test('pelajar tidak berhak mengakses attempt milik orang lain -> 403', async () => {
+      const fakeAttempt = { id: 1, id_pelajar: 2 };
+      Attempt.getAttemptById.mockResolvedValue(fakeAttempt);
+      const req = { params: { id: '1' }, auth: { type: 'PELAJAR', id: 5 } };
+      const res = mockRes();
+
+      await getAttemptById(req, res);
+
+      expect(response).toHaveBeenCalledWith(403, null, 'Attempt tidak tersedia untuk pengguna ini', res);
+    });
   });
 
   describe('getAttemptsByLevel()', () => {

@@ -5,7 +5,7 @@ const { verifyLogin, onlyAdmin } = require('../middlewares/authMiddleware');
 
 router.post('/attempts', verifyLogin, attemptController.create);
 router.get('/attempts', verifyLogin, onlyAdmin, attemptController.getAllAttempts);
-router.get('/attempts/:id', verifyLogin, onlyAdmin, attemptController.getAttemptById);
+router.get('/attempts/:id', verifyLogin, attemptController.getAttemptById);
 router.get('/attempts/level/:levelId', verifyLogin, attemptController.getAttemptsByLevel);
 router.get('/attempts/pelajar/:pelajarId', verifyLogin, attemptController.getAttemptsByPelajar);
 
