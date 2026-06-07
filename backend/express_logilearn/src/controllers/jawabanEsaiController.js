@@ -9,7 +9,19 @@ async function create(req, res) {
     const { jawaban } = req.body
     const { idSoal, idAttempt } = req.params
 
+    if (!jawaban) {
+      return response(400, null, "Field jawaban wajib diisi", res)
+    }
+
+    if (!idSoal || !idAttempt) {
+      return response(400, null, "idSoal dan idAttempt wajib diisi", res)
+    }
+
     const soalData = await Soal.getSoalEsaiById(idSoal)
+    if (!soalData) {
+      return response(404, null, "Soal esai tidak ditemukan", res)
+    }
+
     const soal = soalData.text_soal
 
     let result;
@@ -22,9 +34,8 @@ async function create(req, res) {
       let feedback = "Jawaban Anda telah direkam. Penilaian otomatis tertunda karena kendala koneksi AI.";
 
       if (soalData.kata_kunci) {
-        const keywords = soalData.kata_kunci.toLowerCase().split(',').map(k => k.trim());
-        const lowercaseJawaban = (jawaban || "").toLowerCase();
-        let matches = 0;
+          const keywords = soalData.kata_kunci.toLowerCase().split(',').map(k => k.trim()).filter(Boolean);
+          const lowercaseJawaban = jawaban.toLowerCase();
         keywords.forEach(k => {
           if (lowercaseJawaban.includes(k)) {
             matches++;

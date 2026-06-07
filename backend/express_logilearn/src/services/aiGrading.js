@@ -1,11 +1,12 @@
 const { GoogleGenAI } = require("@google/genai");
 
+const { getRequiredEnv } = require('../helpers/env');
+
 let aiInstance;
 function getAi() {
   if (!aiInstance) {
-    aiInstance = new GoogleGenAI({
-      apiKey: process.env.GEMINI_API_KEY || "dummy-key"
-    });
+    const apiKey = getRequiredEnv('GEMINI_API_KEY');
+    aiInstance = new GoogleGenAI({ apiKey });
   }
   return aiInstance;
 }
@@ -76,4 +77,4 @@ Berikan juga umpan balik (feedback) singkat dalam bahasa Indonesia yang konstruk
 module.exports = {
   nilaiEsai,
   gradeEssay: nilaiEsai
-};
+};

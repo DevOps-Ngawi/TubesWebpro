@@ -1,5 +1,8 @@
 const jwt = require('jsonwebtoken');
 const resp = require('../helpers/response');
+const { getRequiredEnv } = require('../helpers/env');
+
+const JWT_SECRET = getRequiredEnv('JWT_SECRET');
 
 function verifyLogin(req, res, next) {
   const authHeader = req.headers.authorization;
@@ -14,7 +17,7 @@ function verifyLogin(req, res, next) {
   }
 
   try {
-    req.auth = jwt.verify(parts[1], process.env.JWT_SECRET);
+    req.auth = jwt.verify(parts[1], JWT_SECRET);
     next();
   } catch (err) {
     return resp(401, null, 'Invalid token', res);

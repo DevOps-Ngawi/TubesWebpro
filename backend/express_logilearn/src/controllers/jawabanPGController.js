@@ -7,6 +7,10 @@ async function create(req, res) {
         const {idAttempt} = req.params
         const {idOpsi} = req.body
 
+        if (!idOpsi) {
+            return response(400, null, `idOpsi wajib diisi`, res)
+        }
+
         const data = await JwbPG.createJwbPG(idAttempt, idOpsi)
         
         await Attempt.recalculateScore(idAttempt)

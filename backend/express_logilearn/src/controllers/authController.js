@@ -1,8 +1,14 @@
 const response = require('../helpers/response');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../models/prisma');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { getRequiredEnv } = require('../helpers/env');
+
+const JWT_SECRET = getRequiredEnv('JWT_SECRET');
+
+function generateToken(payload) {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
+}
 
 const loginAdmin = async (req, res) => {
   try {
@@ -25,11 +31,7 @@ const loginAdmin = async (req, res) => {
       return response(401, null, "Password salah", res);
     }
 
-    const token = jwt.sign(
-      { id: admin.id, username: admin.username, type: "ADMIN" },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    const token = generateToken({ id: admin.id, username: admin.username, type: "ADMIN" });
 
     const dataLogin = {
       token: token,
@@ -51,6 +53,10 @@ const loginPelajar = async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return response(400, null, "Username dan password wajib diisi", res);
+    }
+
     const pelajar = await prisma.pelajars.findFirst({
       where: { username: username }
     });
@@ -64,11 +70,7 @@ const loginPelajar = async (req, res) => {
       return response(401, null, "Password salah", res);
     }
 
-    const token = jwt.sign(
-      { id: pelajar.id, username: pelajar.username, type: "PELAJAR" },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    const token = generateToken({ id: pelajar.id, username: pelajar.username, type: "PELAJAR" });
 
     const dataLogin = {
       token: token,

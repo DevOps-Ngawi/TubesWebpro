@@ -1,7 +1,7 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../models/prisma');
 const response = require('../helpers/response');
 const bcrypt = require('bcryptjs');
+const { parseIntegerOrNull } = require('../helpers/numbers');
 
 const getProfile = async (req, res) => {
   try {
@@ -64,9 +64,17 @@ const changePassword = async (req, res) => {
     const { oldPassword, newPassword } = req.body;
     const pelajarId = req.auth.id;
 
+    if (!oldPassword || !newPassword) {
+      return response(400, null, "Old password dan new password wajib diisi", res);
+    }
+
     const pelajar = await prisma.pelajars.findUnique({
       where: { id: pelajarId }
     });
+
+    if (!pelajar) {
+      return response(404, null, "Pelajar tidak ditemukan", res);
+    }
 
     const isMatch = await bcrypt.compare(oldPassword, pelajar.password);
     if (!isMatch) {
@@ -89,8 +97,8 @@ const changePassword = async (req, res) => {
 
 const getStats = async (req, res) => {
   try {
-    const pelajarId = Number.parseInt(req.params.id);
-    if (Number.isNaN(pelajarId)) {
+    const pelajarId = parseIntegerOrNull(req.params.id);
+    if (pelajarId === null) {
       return response(400, null, "ID pelajar tidak valid", res);
     }
 
@@ -131,8 +139,8 @@ const getStats = async (req, res) => {
 
 const getBadges = async (req, res) => {
   try {
-    const pelajarId = Number.parseInt(req.params.id);
-    if (Number.isNaN(pelajarId)) {
+    const pelajarId = parseIntegerOrNull(req.params.id);
+    if (pelajarId === null) {
       return response(400, null, "ID pelajar tidak valid", res);
     }
 

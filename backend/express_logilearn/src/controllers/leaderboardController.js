@@ -1,13 +1,11 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../models/prisma');
 const response = require('../helpers/response');
+const { parsePage, parseLimit, parseIntegerOrNull } = require('../helpers/numbers');
 
 async function getGlobalLeaderboard(req, res) {
   try {
-    const page = Math.max(1, parseInt(req.query.page) || 1);
-    let limit = parseInt(req.query.limit) || 10;
-    if (limit > 50) limit = 50;
-    if (limit < 1) limit = 10;
+    const page = parsePage(req.query.page, 1);
+    const limit = parseLimit(req.query.limit, 10, 50);
 
     const skip = (page - 1) * limit;
 
@@ -50,9 +48,9 @@ async function getGlobalLeaderboard(req, res) {
 
 async function getLevelLeaderboard(req, res) {
   try {
-    const levelId = parseInt(req.query.level_id);
-    if (!levelId) {
-      return response(400, null, 'level_id harus diisi', res);
+    const levelId = parseIntegerOrNull(req.query.level_id);
+    if (levelId === null) {
+      return response(400, null, 'level_id harus diisi dan berupa angka positif', res);
     }
 
     // Check if level exists
