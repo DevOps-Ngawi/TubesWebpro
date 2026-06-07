@@ -1,7 +1,5 @@
 const response = require('../helpers/response');
 const Attempt = require('../models/attempt');
-const Level = require('../models/level');
-const aiGrading = require('../services/aiGrading');
 
 async function getAllAttempts(req, res) {
   try {
