@@ -1,7 +1,7 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../models/prisma');
 const response = require('../helpers/response');
 const bcrypt = require('bcryptjs');
+const { parseIntegerOrNull } = require('../helpers/numbers');
 
 const getProfile = async (req, res) => {
   try {
@@ -44,6 +44,7 @@ const getProfile = async (req, res) => {
     });
 
     const dataProfile = {
+      id: pelajarId,
       nama: pelajar.nama,
       username: pelajar.username,
       statistik: {
@@ -63,9 +64,17 @@ const changePassword = async (req, res) => {
     const { oldPassword, newPassword } = req.body;
     const pelajarId = req.auth.id;
 
+    if (!oldPassword || !newPassword) {
+      return response(400, null, "Old password dan new password wajib diisi", res);
+    }
+
     const pelajar = await prisma.pelajars.findUnique({
       where: { id: pelajarId }
     });
+
+    if (!pelajar) {
+      return response(404, null, "Pelajar tidak ditemukan", res);
+    }
 
     const isMatch = await bcrypt.compare(oldPassword, pelajar.password);
     if (!isMatch) {
@@ -86,7 +95,83 @@ const changePassword = async (req, res) => {
   }
 };
 
+const getStats = async (req, res) => {
+  try {
+    const pelajarId = parseIntegerOrNull(req.params.id);
+    if (pelajarId === null) {
+      return response(400, null, "ID pelajar tidak valid", res);
+    }
+
+    const pelajar = await prisma.pelajars.findUnique({
+      where: { id: pelajarId }
+    });
+
+    if (!pelajar) {
+      return response(404, null, "Pelajar tidak ditemukan", res);
+    }
+
+    const total_badges = await prisma.pelajar_badges.count({
+      where: { id_pelajar: pelajarId }
+    });
+
+    const countHigherXp = await prisma.pelajars.count({
+      where: {
+        xp: { gt: pelajar.xp }
+      }
+    });
+
+    const global_rank = countHigherXp + 1;
+
+    const dataStats = {
+      id: pelajar.id,
+      nama: pelajar.nama,
+      total_xp: pelajar.xp,
+      level_rank: pelajar.level_rank,
+      total_badges,
+      global_rank
+    };
+
+    return response(200, dataStats, "Statistik pelajar berhasil dimuat", res);
+  } catch (error) {
+    return response(500, null, `Terjadi kesalahan: ${error.message}`, res);
+  }
+};
+
+const getBadges = async (req, res) => {
+  try {
+    const pelajarId = parseIntegerOrNull(req.params.id);
+    if (pelajarId === null) {
+      return response(400, null, "ID pelajar tidak valid", res);
+    }
+
+    const pelajar = await prisma.pelajars.findUnique({
+      where: { id: pelajarId }
+    });
+
+    if (!pelajar) {
+      return response(404, null, "Pelajar tidak ditemukan", res);
+    }
+
+    const pelajarBadges = await prisma.pelajar_badges.findMany({
+      where: { id_pelajar: pelajarId },
+      include: { badges: true }
+    });
+
+    const dataBadges = pelajarBadges.map(pb => ({
+      badge_name: pb.badges.name,
+      badge_description: pb.badges.description,
+      obtained_at: pb.obtained_at
+    }));
+
+    return response(200, dataBadges, "Badge pelajar berhasil dimuat", res);
+  } catch (error) {
+    return response(500, null, `Terjadi kesalahan: ${error.message}`, res);
+  }
+};
+
 module.exports = { 
   getProfile, 
-  changePassword 
+  changePassword,
+  getStats,
+  getBadges
 };

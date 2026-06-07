@@ -16,6 +16,7 @@ const jawabanPGRouter = require('./src/routes/jawabanPGRoutes')
 const jawabanEsaiRouter = require('./src/routes/jawabanEsaiRoutes')
 const pelajarRoutes = require('./src/routes/pelajarRoutes');
 const dashboardRouter = require('./src/routes/dashboardRoutes');
+const leaderboardRouter = require('./src/routes/leaderboardRoutes');
 
 const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',').map(o => o.trim());
 app.use(cors({
@@ -44,6 +45,7 @@ app.use('/api', esaiRouter)
 app.use('/api', soalPGRouter)
 app.use('/api', attemptRouter)
 app.use('/api', pelajarRoutes)
+app.use('/api', leaderboardRouter)
 app.use('/api', jawabanPGRouter)
 app.use('/api', jawabanEsaiRouter)
 app.use('/api', dashboardRouter)

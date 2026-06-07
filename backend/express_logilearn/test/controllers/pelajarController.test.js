@@ -4,12 +4,17 @@ const response = require('../../src/helpers/response');
 const mockPrismaClient = {
   pelajars: {
     findUnique: jest.fn(),
-    update: jest.fn()
+    update: jest.fn(),
+    count: jest.fn()
   },
   attempts: {
     groupBy: jest.fn()
   },
   sections: {
+    findMany: jest.fn()
+  },
+  pelajar_badges: {
+    count: jest.fn(),
     findMany: jest.fn()
   }
 };
@@ -20,7 +25,7 @@ jest.mock('@prisma/client', () => {
   };
 });
 
-const { getProfile, changePassword } = require('../../src/controllers/pelajarController');
+const { getProfile, changePassword, getStats, getBadges } = require('../../src/controllers/pelajarController');
 
 jest.mock('bcryptjs');
 jest.mock('../../src/helpers/response');
@@ -69,6 +74,7 @@ describe('Pelajar Controller', () => {
       expect(response).toHaveBeenCalledWith(
         200,
         {
+          id: 1,
           nama: 'John Doe',
           username: 'johndoe',
           statistik: {
@@ -163,6 +169,157 @@ describe('Pelajar Controller', () => {
       await changePassword(req, res);
 
       expect(response).toHaveBeenCalledWith(500, null, "DB Error", res);
+    });
+  });
+
+  describe('getStats()', () => {
+    test('berhasil memuat statistik pelajar', async () => {
+      const req = { params: { id: '1' } };
+      const res = mockRes();
+
+      mockPrismaClient.pelajars.findUnique.mockResolvedValue({
+        id: 1,
+        nama: 'John Doe',
+        xp: 1200,
+        level_rank: 2
+      });
+
+      mockPrismaClient.pelajar_badges.count.mockResolvedValue(3);
+      mockPrismaClient.pelajars.count.mockResolvedValue(5); // 5 users with higher XP
+
+      await getStats(req, res);
+
+      expect(mockPrismaClient.pelajars.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 }
+      });
+      expect(mockPrismaClient.pelajar_badges.count).toHaveBeenCalledWith({
+        where: { id_pelajar: 1 }
+      });
+      expect(mockPrismaClient.pelajars.count).toHaveBeenCalledWith({
+        where: { xp: { gt: 1200 } }
+      });
+
+      expect(response).toHaveBeenCalledWith(
+        200,
+        {
+          id: 1,
+          nama: 'John Doe',
+          total_xp: 1200,
+          level_rank: 2,
+          total_badges: 3,
+          global_rank: 6
+        },
+        "Statistik pelajar berhasil dimuat",
+        res
+      );
+    });
+
+    test('gagal memuat statistik, pelajar tidak ditemukan (404)', async () => {
+      const req = { params: { id: '99' } };
+      const res = mockRes();
+
+      mockPrismaClient.pelajars.findUnique.mockResolvedValue(null);
+
+      await getStats(req, res);
+
+      expect(response).toHaveBeenCalledWith(404, null, "Pelajar tidak ditemukan", res);
+    });
+
+    test('gagal memuat statistik, ID pelajar tidak valid (400)', async () => {
+      const req = { params: { id: 'abc' } };
+      const res = mockRes();
+
+      await getStats(req, res);
+
+      expect(response).toHaveBeenCalledWith(400, null, "ID pelajar tidak valid", res);
+    });
+
+    test('error server saat memuat statistik (500)', async () => {
+      const req = { params: { id: '1' } };
+      const res = mockRes();
+
+      mockPrismaClient.pelajars.findUnique.mockRejectedValue(new Error('Connection failed'));
+
+      await getStats(req, res);
+
+      expect(response).toHaveBeenCalledWith(500, null, "Terjadi kesalahan: Connection failed", res);
+    });
+  });
+
+  describe('getBadges()', () => {
+    test('berhasil memuat badge pelajar', async () => {
+      const req = { params: { id: '1' } };
+      const res = mockRes();
+
+      mockPrismaClient.pelajars.findUnique.mockResolvedValue({
+        id: 1,
+        nama: 'John Doe'
+      });
+
+      const mockObtainedAt = new Date();
+      mockPrismaClient.pelajar_badges.findMany.mockResolvedValue([
+        {
+          obtained_at: mockObtainedAt,
+          badges: {
+            name: 'Skor Sempurna',
+            description: 'Raih skor 100 untuk pertama kalinya'
+          }
+        }
+      ]);
+
+      await getBadges(req, res);
+
+      expect(mockPrismaClient.pelajars.findUnique).toHaveBeenCalledWith({
+        where: { id: 1 }
+      });
+      expect(mockPrismaClient.pelajar_badges.findMany).toHaveBeenCalledWith({
+        where: { id_pelajar: 1 },
+        include: { badges: true }
+      });
+
+      expect(response).toHaveBeenCalledWith(
+        200,
+        [
+          {
+            badge_name: 'Skor Sempurna',
+            badge_description: 'Raih skor 100 untuk pertama kalinya',
+            obtained_at: mockObtainedAt
+          }
+        ],
+        "Badge pelajar berhasil dimuat",
+        res
+      );
+    });
+
+    test('gagal memuat badge, pelajar tidak ditemukan (404)', async () => {
+      const req = { params: { id: '99' } };
+      const res = mockRes();
+
+      mockPrismaClient.pelajars.findUnique.mockResolvedValue(null);
+
+      await getBadges(req, res);
+
+      expect(response).toHaveBeenCalledWith(404, null, "Pelajar tidak ditemukan", res);
+    });
+
+    test('gagal memuat badge, ID pelajar tidak valid (400)', async () => {
+      const req = { params: { id: 'abc' } };
+      const res = mockRes();
+
+      await getBadges(req, res);
+
+      expect(response).toHaveBeenCalledWith(400, null, "ID pelajar tidak valid", res);
+    });
+
+    test('error server saat memuat badge (500)', async () => {
+      const req = { params: { id: '1' } };
+      const res = mockRes();
+
+      mockPrismaClient.pelajars.findUnique.mockRejectedValue(new Error('Connection failed'));
+
+      await getBadges(req, res);
+
+      expect(response).toHaveBeenCalledWith(500, null, "Terjadi kesalahan: Connection failed", res);
     });
   });
 });

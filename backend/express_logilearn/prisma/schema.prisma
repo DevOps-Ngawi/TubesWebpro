@@ -28,11 +28,14 @@ model levels {
 }
 
 model pelajars {
-  id       Int        @id @default(autoincrement())
-  nama     String
-  username String
-  password String
-  attempts attempts[]
+  id             Int              @id @default(autoincrement())
+  nama           String
+  username       String
+  password       String
+  xp             Int              @default(0)
+  level_rank     Int              @default(1)
+  attempts       attempts[]
+  pelajar_badges pelajar_badges[]
 }
 
 model attempts {
@@ -40,6 +43,7 @@ model attempts {
   id_level      Int
   id_pelajar    Int
   skor          Float
+  created_at    DateTime       @default(now())
   levels        levels         @relation(fields: [id_level], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "attempts_level_fk")
   pelajars      pelajars       @relation(fields: [id_pelajar], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "attempts_pelajar_fk")
   jawaban_esais jawabanEsais[]
@@ -113,4 +117,24 @@ model jawabanPGs {
 enum Tipe {
   pg
   esai
+}
+
+model badges {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  description    String
+  criteria_type  String
+  pelajar_badges pelajar_badges[]
+}
+
+model pelajar_badges {
+  id          Int      @id @default(autoincrement())
+  id_pelajar  Int
+  id_badge    Int
+  obtained_at DateTime @default(now())
+  pelajars    pelajars @relation(fields: [id_pelajar], references: [id], onDelete: Cascade)
+  badges      badges   @relation(fields: [id_badge], references: [id], onDelete: Cascade)
+
+  @@unique([id_pelajar, id_badge])
+  @@index([id_pelajar])
 }

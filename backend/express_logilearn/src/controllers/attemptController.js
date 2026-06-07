@@ -120,15 +120,28 @@ async function submitAttempt(req, res) {
        return response(400, null, 'id_attempt harus diisi', res);
     }
 
-    const updatedAttempt = await Attempt.recalculateScore(id_attempt);
+    const result = await Attempt.recalculateScoreWithGamification(id_attempt);
 
-    if (!updatedAttempt) {
+    if (!result) {
       return response(404, null, 'Attempt tidak ditemukan', res);
     }
 
-    response(200, updatedAttempt, 'Attempt submitted (score recalculated) successfully', res);
+    const { attempt, gamification } = result;
+    const responsePayload = {
+      ...attempt,
+      xp_gained: gamification.xp_gained,
+      total_xp: gamification.total_xp,
+      level_rank_up: gamification.level_rank_up,
+      new_level_rank: gamification.new_level_rank,
+      new_badges: gamification.new_badges
+    };
+
+    response(200, responsePayload, 'Attempt submitted (score recalculated) successfully', res);
 
   } catch (error) {
+    if (error.status === 422) {
+      return response(422, null, error.message, res);
+    }
     console.log(error.message);
     response(500, null, `Terjadi kesalahan server: ${error.message}`, res);
   }
