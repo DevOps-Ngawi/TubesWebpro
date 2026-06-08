@@ -6,6 +6,7 @@ jest.mock('../../src/models/prisma', () => ({
     findMany: jest.fn(),
     findUnique: jest.fn(),
     create: jest.fn(),
+    upsert: jest.fn(),
     update: jest.fn()
   }
 }))
@@ -40,12 +41,23 @@ describe('JawabanEsai Model', () => {
 
   test('createJwbEsai()', async () => {
     const fakeData = { id: 1 }
-    prisma.jawabanEsais.create.mockResolvedValue(fakeData)
+    prisma.jawabanEsais.upsert.mockResolvedValue(fakeData)
 
     const result = await JwbEsai.createJwbEsai('2', '3', 'Jawaban', 0.8, 'Bagus')
 
-    expect(prisma.jawabanEsais.create).toHaveBeenCalledWith({
-      data: {
+    expect(prisma.jawabanEsais.upsert).toHaveBeenCalledWith({
+      where: {
+        id_attempt_id_soal: {
+          id_attempt: 2,
+          id_soal: 3
+        }
+      },
+      update: {
+        text_jawaban_esai: 'Jawaban',
+        skor: 0.8,
+        feedback: 'Bagus'
+      },
+      create: {
         id_attempt: 2,
         id_soal: 3,
         text_jawaban_esai: 'Jawaban',

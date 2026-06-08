@@ -6,6 +6,7 @@ jest.mock('../../src/models/prisma', () => ({
     findMany: jest.fn(),
     findUnique: jest.fn(),
     create: jest.fn(),
+    upsert: jest.fn(),
   },
   opsis: {
     findUnique: jest.fn(),
@@ -52,15 +53,22 @@ describe('JawabanPG Model', () => {
       const mockCreated = { id: 1, id_attempt: 10, id_opsi: 5, skor: 1 }
       
       prisma.opsis.findUnique.mockResolvedValue(mockOpsi)
-      prisma.jawabanPGs.create.mockResolvedValue(mockCreated)
+      prisma.jawabanPGs.upsert.mockResolvedValue(mockCreated)
 
       const result = await JwbPG.createJwbPG(10, 5)
 
       expect(prisma.opsis.findUnique).toHaveBeenCalledWith({
         where: { id: 5 }
       })
-      expect(prisma.jawabanPGs.create).toHaveBeenCalledWith({
-        data: {
+      expect(prisma.jawabanPGs.upsert).toHaveBeenCalledWith({
+        where: {
+          id_attempt_id_opsi: {
+            id_attempt: 10,
+            id_opsi: 5
+          }
+        },
+        update: { skor: 1 },
+        create: {
           id_attempt: 10,
           id_opsi: 5,
           skor: 1
@@ -74,15 +82,22 @@ describe('JawabanPG Model', () => {
       const mockCreated = { id: 2, id_attempt: 10, id_opsi: 6, skor: 0 }
       
       prisma.opsis.findUnique.mockResolvedValue(mockOpsi)
-      prisma.jawabanPGs.create.mockResolvedValue(mockCreated)
+      prisma.jawabanPGs.upsert.mockResolvedValue(mockCreated)
 
       const result = await JwbPG.createJwbPG(10, 6)
 
       expect(prisma.opsis.findUnique).toHaveBeenCalledWith({
         where: { id: 6 }
       })
-      expect(prisma.jawabanPGs.create).toHaveBeenCalledWith({
-        data: {
+      expect(prisma.jawabanPGs.upsert).toHaveBeenCalledWith({
+        where: {
+          id_attempt_id_opsi: {
+            id_attempt: 10,
+            id_opsi: 6
+          }
+        },
+        update: { skor: 0 },
+        create: {
           id_attempt: 10,
           id_opsi: 6,
           skor: 0
