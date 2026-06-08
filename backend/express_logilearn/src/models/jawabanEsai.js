@@ -2,7 +2,7 @@ const prisma = require('./prisma')
 
 function sanitizeString(str) {
     if (typeof str !== 'string') return str;
-    const nullChar = String.fromCharCode(0);
+    const nullChar = String.fromCodePoint(0);
     return str.replace(new RegExp(nullChar, 'g'), '');
 }
 
