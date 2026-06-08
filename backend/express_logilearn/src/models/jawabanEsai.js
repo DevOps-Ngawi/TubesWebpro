@@ -2,7 +2,8 @@ const prisma = require('./prisma')
 
 function sanitizeString(str) {
     if (typeof str !== 'string') return str;
-    return str.replace(/\u0000/g, '');
+    const nullChar = String.fromCodePoint(0);
+    return str.replace(new RegExp(nullChar, 'g'), '');
 }
 
 async function getAllJwbEsais() {
