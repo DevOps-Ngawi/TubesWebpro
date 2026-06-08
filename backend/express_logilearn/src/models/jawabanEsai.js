@@ -18,8 +18,19 @@ async function getJwbEsaiById(id) {
 }
 
 async function createJwbEsai(idAttempt, idSoal, jawabanEsai, skor, feedback) {
-    return prisma.jawabanEsais.create({
-        data: {
+    return prisma.jawabanEsais.upsert({
+        where: {
+            id_attempt_id_soal: {
+                id_attempt: Number(idAttempt),
+                id_soal: Number(idSoal)
+            }
+        },
+        update: {
+            text_jawaban_esai: sanitizeString(jawabanEsai),
+            skor: skor,
+            feedback: sanitizeString(feedback)
+        },
+        create: {
             id_attempt: Number(idAttempt),
             id_soal: Number(idSoal),
             text_jawaban_esai: sanitizeString(jawabanEsai),
@@ -47,4 +58,4 @@ module.exports = {
     getJwbEsaiById,
     createJwbEsai,
     updateJwbEsai
-}
+}

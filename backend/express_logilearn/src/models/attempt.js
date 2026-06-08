@@ -55,21 +55,41 @@ function computeFinalPercentage(attempt) {
     return 0;
   }
 
-  let totalScore = 0;
+  const soals = attempt.levels.soals;
+  const maxScore = soals.length;
+  if (maxScore === 0) return 0;
+
+  // Build a map of soal id → highest skor to handle duplicate submissions
+  const pgScoreByOpsiSoal = {};
   if (Array.isArray(attempt.jawaban_pgs)) {
     attempt.jawaban_pgs.forEach((j) => {
-      totalScore += normalizeScore(j.skor);
+      // Use id_soal from the opsi relation if available, otherwise fall back to id_opsi
+      const key = j.opsis?.id_soal ?? j.id_opsi;
+      const s = normalizeScore(j.skor);
+      if (pgScoreByOpsiSoal[key] === undefined || s > pgScoreByOpsiSoal[key]) {
+        pgScoreByOpsiSoal[key] = s;
+      }
     });
   }
 
+  const esaiScoreBySoal = {};
   if (Array.isArray(attempt.jawaban_esais)) {
     attempt.jawaban_esais.forEach((j) => {
-      totalScore += normalizeScore(j.skor);
+      const key = j.id_soal;
+      const s = normalizeScore(j.skor);
+      if (esaiScoreBySoal[key] === undefined || s > esaiScoreBySoal[key]) {
+        esaiScoreBySoal[key] = s;
+      }
     });
   }
 
-  const maxScore = attempt.levels.soals.length;
-  return maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
+  let totalScore = 0;
+  Object.values(pgScoreByOpsiSoal).forEach((s) => { totalScore += s; });
+  Object.values(esaiScoreBySoal).forEach((s) => { totalScore += s; });
+
+  const percentage = (totalScore / maxScore) * 100;
+  // Clamp to [0, 100] to prevent downstream 422 from gamification service
+  return Math.min(100, Math.max(0, percentage));
 }
 
 class Attempt {
@@ -211,7 +231,9 @@ class Attempt {
           levels: {
             include: { soals: true }
           },
-          jawaban_pgs: true,
+          jawaban_pgs: {
+            include: { opsis: true }
+          },
           jawaban_esais: true
         }
       });

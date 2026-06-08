@@ -188,10 +188,13 @@ async function process(tx, id_pelajar, skor, id_level, id_attempt) {
 
   // 4. Determine level rank (ensure rank never decreases)
   const newRank = determineRank(updatedPelajar.xp);
-  const new_level_rank = Math.max(pelajar.level_rank, newRank);
-  const level_rank_up = new_level_rank > pelajar.level_rank;
+  const currentRank = typeof pelajar.level_rank === 'number' && !isNaN(pelajar.level_rank)
+    ? pelajar.level_rank
+    : 1;
+  const new_level_rank = Math.max(currentRank, newRank);
+  const level_rank_up = new_level_rank > currentRank;
 
-  if (new_level_rank !== pelajar.level_rank) {
+  if (new_level_rank !== currentRank) {
     await tx.pelajars.update({
       where: { id: id_pelajar },
       data: {
