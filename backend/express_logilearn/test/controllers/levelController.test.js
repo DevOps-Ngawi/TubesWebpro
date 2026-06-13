@@ -21,7 +21,7 @@ const mockRes = () => ({ status: jest.fn(), json: jest.fn() })
 
 beforeEach(() => {
     jest.clearAllMocks()
-    response.mockImplementation(() => {})
+    response.mockImplementation(() => { })
 })
 
 describe('validateLevelInput()', () => {
@@ -224,19 +224,19 @@ describe('getBySectionId()', () => {
     })
 })
 describe('update()', () => {
-    test('berhasil update level', async () => {
-        const fakeLevel = { id: 1, nama: 'Level Lama' }
-        const updatedLevel = { id: 1, nama: 'Level Baru' }
+    test('Menguji Pengubahan Nama Level Sukses (success path)', async () => {
+        const fakeLevel = { id: 1, nama: 'Level 1: Pengenalan Logika' }
+        const updatedLevel = { id: 1, nama: 'Level 1: Pengenalan Logika Baru' }
         Level.getLevelById.mockResolvedValue(fakeLevel)
         Level.updateLevel.mockResolvedValue(updatedLevel)
-        const req = { params: { id: '1' }, body: { nama: 'Level Baru', idSection: '2', deskripsi: 'Desc', urutan: '2' } }
+        const req = { params: { id: '1' }, body: { nama: 'Level 1: Pengenalan Logika Baru', idSection: '1', deskripsi: 'Desc', urutan: '1' } }
         const res = mockRes()
         await update(req, res)
-        expect(Level.updateLevel).toHaveBeenCalledWith('1', '2', 'Level Baru', 'Desc', '2')
+        expect(Level.updateLevel).toHaveBeenCalledWith('1', '1', 'Level 1: Pengenalan Logika Baru', 'Desc', '1')
         expect(response).toHaveBeenCalledWith(200, updatedLevel, 'level updated successfully', res)
     })
 
-    test('validasi gagal: nama kosong → 400', async () => {
+    test('Menguji Pengubahan Nama Level Validasi Gagal (error path)', async () => {
         const req = { params: { id: '1' }, body: { nama: '', idSection: '1' } }
         const res = mockRes()
         await update(req, res)
@@ -323,7 +323,7 @@ describe('getSoalByLevelAndId()', () => {
 
     test('level tidak ada di section (tapi ada di section lain) → 404', async () => {
         Level.getLevelsBySectionId.mockResolvedValue(null)
-        Level.getLevelById.mockResolvedValue({ id: 1 }) 
+        Level.getLevelById.mockResolvedValue({ id: 1 })
         const req = { params: { slugSection: 'grammar', id: '1', idSoal: '5' } }
         const res = mockRes()
         await getSoalByLevelAndId(req, res)
