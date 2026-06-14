@@ -66,8 +66,6 @@ async function create(req, res) {
       result.feedback
     )
 
-    await Attempt.recalculateScore(idAttempt)
-
     response(200, data, "successfully", res)
   } catch (err) {
     console.error(err.message)

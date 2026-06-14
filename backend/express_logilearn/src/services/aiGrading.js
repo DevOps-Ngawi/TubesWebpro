@@ -22,7 +22,7 @@ Berikan penilaian berdasarkan ketepatan konsep dan kecocokan dengan kata kunci u
     const response = await axios.post(
       GROQ_API_URL,
       {
-        model: "llama-3.3-70b-versatile",
+        model: "llama-3.1-8b-instant",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
