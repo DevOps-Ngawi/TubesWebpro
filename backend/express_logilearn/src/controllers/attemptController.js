@@ -115,9 +115,9 @@ async function create(req, res) {
 async function submitAttempt(req, res) {
   try {
     let { id_attempt } = req.body;
-    
+
     if (!id_attempt) {
-       return response(400, null, 'id_attempt harus diisi', res);
+      return response(400, null, 'id_attempt harus diisi', res);
     }
 
     const result = await Attempt.recalculateScoreWithGamification(id_attempt);
@@ -210,7 +210,7 @@ async function submitBatch(req, res) {
 
         const soalText = soalData.text_soal;
         let result;
-        
+
         try {
           result = await nilaiEsai(soalText, ans.jawaban, soalData.kata_kunci);
         } catch (aiErr) {
