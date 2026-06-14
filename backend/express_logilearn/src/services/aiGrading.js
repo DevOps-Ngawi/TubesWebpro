@@ -22,7 +22,7 @@ Berikan penilaian berdasarkan ketepatan konsep dan kecocokan dengan kata kunci u
     const response = await axios.post(
       OPENROUTER_API_URL,
       {
-        model: "poolside/laguna-m.1:free",
+        model: "google/gemma-4-31b-it:free",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
