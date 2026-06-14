@@ -3,7 +3,7 @@ const axios = require("axios");
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 async function nilaiEsai(question, studentAnswer, keywords) {
-  const systemPrompt = `Anda adalah dosen logika yang bertugas menilai jawaban esai mahasiswa. 
+  const systemPrompt = `Anda adalah dosen logika yang bertugas menilai jawaban esai siswa. 
 Berikan penilaian dalam format JSON dengan dua field:
 - "score": nilai desimal antara 0.0 (sangat salah) sampai 1.0 (sangat benar/sempurna)
 - "feedback": umpan balik singkat, jelas, dan konstruktif dalam bahasa Indonesia
@@ -13,7 +13,7 @@ Hanya kembalikan JSON valid, tanpa teks tambahan.`;
   const userPrompt = `Soal:
 ${question}
 
-${keywords ? `Kata Kunci Utama yang harus ada/sesuai:\n${keywords}\n` : ""}Jawaban Mahasiswa:
+${keywords ? `Kata Kunci Utama yang harus ada/sesuai:\n${keywords}\n` : ""}Jawaban Siswa:
 ${studentAnswer}
 
 Berikan penilaian berdasarkan ketepatan konsep dan kecocokan dengan kata kunci utama (jika ada).`;
