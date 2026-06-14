@@ -22,7 +22,7 @@ Berikan penilaian berdasarkan ketepatan konsep dan kecocokan dengan kata kunci u
     const response = await axios.post(
       OPENROUTER_API_URL,
       {
-        model: "openrouter/auto",
+        model: "poolside/laguna-m.1:free",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
