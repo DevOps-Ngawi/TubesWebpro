@@ -148,6 +148,8 @@ async function submitAttempt(req, res) {
 }
 
 async function submitBatch(req, res) {
+  const startTime = Date.now();
+  console.log(`[submitBatch] === START === Attempt: ${req.params.idAttempt}`);
   try {
     const { idAttempt } = req.params;
     const { answers } = req.body;
@@ -190,6 +192,7 @@ async function submitBatch(req, res) {
           });
         }
       }
+      console.log(`[submitBatch] PG answers processed. Elapsed: ${Date.now() - startTime}ms`);
     }
 
     // 2. Process Esai Answers
@@ -198,6 +201,7 @@ async function submitBatch(req, res) {
       const soals = await prisma.soals.findMany({
         where: { id: { in: esaiSoalIds } }
       });
+      console.log(`[submitBatch] Esai questions fetched from DB. Elapsed: ${Date.now() - startTime}ms`);
 
       // Run AI grading in parallel (network bound, very fast)
       const gradedResults = await Promise.all(esaiAnswers.map(async (ans) => {
@@ -246,6 +250,7 @@ async function submitBatch(req, res) {
           feedback: result.feedback
         };
       }));
+      console.log(`[submitBatch] AI grading completed. Elapsed: ${Date.now() - startTime}ms`);
 
       // Write graded esai answers sequentially to the database to preserve connections
       for (const res of gradedResults) {
@@ -272,9 +277,12 @@ async function submitBatch(req, res) {
           });
         }
       }
+      console.log(`[submitBatch] Esai answers upserted to DB. Elapsed: ${Date.now() - startTime}ms`);
     }
 
+    console.log(`[submitBatch] Starting recalculateScoreWithGamification...`);
     const finalizeResult = await Attempt.recalculateScoreWithGamification(idAttempt);
+    console.log(`[submitBatch] Recalculate score with gamification completed. Elapsed: ${Date.now() - startTime}ms`);
 
     if (!finalizeResult) {
       return response(404, null, 'Attempt tidak ditemukan', res);
@@ -290,9 +298,10 @@ async function submitBatch(req, res) {
       new_badges: gamification.new_badges
     };
 
+    console.log(`[submitBatch] === SUCCESS === Total time: ${Date.now() - startTime}ms`);
     response(200, responsePayload, 'Batch attempt submitted successfully', res);
   } catch (error) {
-    console.error("Batch submit failed:", error.message);
+    console.error(`[submitBatch] === FAILED === Total time: ${Date.now() - startTime}ms, Error:`, error.message);
     response(500, null, `Terjadi kesalahan server: ${error.message}`, res);
   }
 }

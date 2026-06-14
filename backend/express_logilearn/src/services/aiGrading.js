@@ -35,7 +35,8 @@ Berikan penilaian berdasarkan ketepatan konsep dan kecocokan dengan kata kunci u
         headers: {
           Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
           "Content-Type": "application/json"
-        }
+        },
+        timeout: 4000 // Batasi waktu tunggu API Groq maksimal 4 detik agar tidak hang
       }
     );
 
