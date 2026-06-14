@@ -169,7 +169,8 @@ async function submitBatch(req, res) {
         where: { id: { in: pgOpsiIds } }
       });
 
-      await Promise.all(pgAnswers.map(async (ans) => {
+      // Run database writes sequentially to avoid connection pool timeouts in serverless environments
+      for (const ans of pgAnswers) {
         const opsi = opsis.find(o => o.id === Number(ans.idOpsi));
         if (opsi) {
           const skor = opsi.is_correct ? 1 : 0;
@@ -188,7 +189,7 @@ async function submitBatch(req, res) {
             }
           });
         }
-      }));
+      }
     }
 
     // 2. Process Esai Answers
@@ -198,66 +199,79 @@ async function submitBatch(req, res) {
         where: { id: { in: esaiSoalIds } }
       });
 
-      await Promise.all(esaiAnswers.map(async (ans) => {
+      // Run AI grading in parallel (network bound, very fast)
+      const gradedResults = await Promise.all(esaiAnswers.map(async (ans) => {
         const soalData = soals.find(s => s.id === Number(ans.idSoal));
-        if (soalData) {
-          const soalText = soalData.text_soal;
-          let result;
-          
-          try {
-            result = await nilaiEsai(soalText, ans.jawaban, soalData.kata_kunci);
-          } catch (aiErr) {
-            console.error("AI Grading failed in batch, using fallback:", aiErr.message);
-            let score = 0.5;
-            let feedback = "Jawaban Anda telah direkam. Penilaian otomatis tertunda karena kendala koneksi AI.";
+        if (!soalData) return null;
 
-            if (soalData.kata_kunci) {
-              const keywords = soalData.kata_kunci.toLowerCase().split(',').map(k => k.trim()).filter(Boolean);
-              const lowercaseJawaban = String(ans.jawaban || "").toLowerCase();
-              let matches = 0;
-              keywords.forEach(k => {
-                if (lowercaseJawaban.includes(k)) {
-                  matches++;
-                }
-              });
+        const soalText = soalData.text_soal;
+        let result;
+        
+        try {
+          result = await nilaiEsai(soalText, ans.jawaban, soalData.kata_kunci);
+        } catch (aiErr) {
+          console.error("AI Grading failed in batch, using fallback:", aiErr.message);
+          let score = 0.5;
+          let feedback = "Jawaban Anda telah direkam. Penilaian otomatis tertunda karena kendala koneksi AI.";
 
-              if (matches === keywords.length) {
-                score = 1.0;
-                feedback = "Jawaban Anda benar dan memenuhi semua kata kunci utama.";
-              } else if (matches > 0) {
-                score = Number((matches / keywords.length).toFixed(2));
-                feedback = `Jawaban Anda sebagian benar (cocok ${matches} dari ${keywords.length} kata kunci utama).`;
-              } else {
-                score = 0.0;
-                feedback = "Jawaban kurang tepat karena tidak mengandung kata kunci utama yang diharapkan.";
+          if (soalData.kata_kunci) {
+            const keywords = soalData.kata_kunci.toLowerCase().split(',').map(k => k.trim()).filter(Boolean);
+            const lowercaseJawaban = String(ans.jawaban || "").toLowerCase();
+            let matches = 0;
+            keywords.forEach(k => {
+              if (lowercaseJawaban.includes(k)) {
+                matches++;
               }
-            }
+            });
 
-            result = { score, feedback: feedback + " (Penilaian otomatis cadangan)" };
+            if (matches === keywords.length) {
+              score = 1.0;
+              feedback = "Jawaban Anda benar dan memenuhi semua kata kunci utama.";
+            } else if (matches > 0) {
+              score = Number((matches / keywords.length).toFixed(2));
+              feedback = `Jawaban Anda sebagian benar (cocok ${matches} dari ${keywords.length} kata kunci utama).`;
+            } else {
+              score = 0.0;
+              feedback = "Jawaban kurang tepat karena tidak mengandung kata kunci utama yang diharapkan.";
+            }
           }
 
+          result = { score, feedback: feedback + " (Penilaian otomatis cadangan)" };
+        }
+
+        return {
+          idSoal: ans.idSoal,
+          jawaban: ans.jawaban,
+          score: result.score,
+          feedback: result.feedback
+        };
+      }));
+
+      // Write graded esai answers sequentially to the database to preserve connections
+      for (const res of gradedResults) {
+        if (res) {
           await prisma.jawabanEsais.upsert({
             where: {
               id_attempt_id_soal: {
                 id_attempt: Number(idAttempt),
-                id_soal: Number(ans.idSoal)
+                id_soal: Number(res.idSoal)
               }
             },
             update: {
-              text_jawaban_esai: sanitizeString(ans.jawaban),
-              skor: result.score,
-              feedback: sanitizeString(result.feedback)
+              text_jawaban_esai: sanitizeString(res.jawaban),
+              skor: res.score,
+              feedback: sanitizeString(res.feedback)
             },
             create: {
               id_attempt: Number(idAttempt),
-              id_soal: Number(ans.idSoal),
-              text_jawaban_esai: sanitizeString(ans.jawaban),
-              skor: result.score,
-              feedback: sanitizeString(result.feedback)
+              id_soal: Number(res.idSoal),
+              text_jawaban_esai: sanitizeString(res.jawaban),
+              skor: res.score,
+              feedback: sanitizeString(res.feedback)
             }
           });
         }
-      }));
+      }
     }
 
     const finalizeResult = await Attempt.recalculateScoreWithGamification(idAttempt);

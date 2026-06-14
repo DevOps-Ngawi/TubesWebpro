@@ -240,6 +240,8 @@ class Attempt {
         attempt: updatedAttempt,
         gamification: gamificationResult
       };
+    }, {
+      timeout: 20000 // 20 seconds to handle slow cloud database latencies and cold starts
     });
   }
 
