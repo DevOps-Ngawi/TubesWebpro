@@ -1,5 +1,7 @@
 const response = require('../helpers/response');
 const Attempt = require('../models/attempt');
+const prisma = require('../models/prisma');
+const { nilaiEsai } = require('../services/aiGrading');
 
 async function getAllAttempts(req, res) {
   try {
@@ -145,6 +147,148 @@ async function submitAttempt(req, res) {
   }
 }
 
+async function submitBatch(req, res) {
+  try {
+    const { idAttempt } = req.params;
+    const { answers } = req.body;
+
+    if (!idAttempt) {
+      return response(400, null, 'idAttempt wajib diisi', res);
+    }
+    if (!answers || !Array.isArray(answers)) {
+      return response(400, null, 'answers harus berupa array', res);
+    }
+
+    const pgAnswers = answers.filter(a => a.tipe === 'pg');
+    const esaiAnswers = answers.filter(a => a.tipe === 'esai');
+
+    // 1. Process PG Answers
+    if (pgAnswers.length > 0) {
+      const pgOpsiIds = pgAnswers.map(a => Number(a.idOpsi)).filter(Boolean);
+      const opsis = await prisma.opsis.findMany({
+        where: { id: { in: pgOpsiIds } }
+      });
+
+      await Promise.all(pgAnswers.map(async (ans) => {
+        const opsi = opsis.find(o => o.id === Number(ans.idOpsi));
+        if (opsi) {
+          const skor = opsi.is_correct ? 1 : 0;
+          await prisma.jawabanPGs.upsert({
+            where: {
+              id_attempt_id_opsi: {
+                id_attempt: Number(idAttempt),
+                id_opsi: Number(ans.idOpsi)
+              }
+            },
+            update: { skor },
+            create: {
+              id_attempt: Number(idAttempt),
+              id_opsi: Number(ans.idOpsi),
+              skor: skor
+            }
+          });
+        }
+      }));
+    }
+
+    // 2. Process Esai Answers
+    if (esaiAnswers.length > 0) {
+      const esaiSoalIds = esaiAnswers.map(a => Number(a.idSoal)).filter(Boolean);
+      const soals = await prisma.soals.findMany({
+        where: { id: { in: esaiSoalIds } }
+      });
+
+      await Promise.all(esaiAnswers.map(async (ans) => {
+        const soalData = soals.find(s => s.id === Number(ans.idSoal));
+        if (soalData) {
+          const soalText = soalData.text_soal;
+          let result;
+          
+          try {
+            result = await nilaiEsai(soalText, ans.jawaban, soalData.kata_kunci);
+          } catch (aiErr) {
+            console.error("AI Grading failed in batch, using fallback:", aiErr.message);
+            let score = 0.5;
+            let feedback = "Jawaban Anda telah direkam. Penilaian otomatis tertunda karena kendala koneksi AI.";
+
+            if (soalData.kata_kunci) {
+              const keywords = soalData.kata_kunci.toLowerCase().split(',').map(k => k.trim()).filter(Boolean);
+              const lowercaseJawaban = String(ans.jawaban || "").toLowerCase();
+              let matches = 0;
+              keywords.forEach(k => {
+                if (lowercaseJawaban.includes(k)) {
+                  matches++;
+                }
+              });
+
+              if (matches === keywords.length) {
+                score = 1.0;
+                feedback = "Jawaban Anda benar dan memenuhi semua kata kunci utama.";
+              } else if (matches > 0) {
+                score = Number((matches / keywords.length).toFixed(2));
+                feedback = `Jawaban Anda sebagian benar (cocok ${matches} dari ${keywords.length} kata kunci utama).`;
+              } else {
+                score = 0.0;
+                feedback = "Jawaban kurang tepat karena tidak mengandung kata kunci utama yang diharapkan.";
+              }
+            }
+
+            result = { score, feedback: feedback + " (Penilaian otomatis cadangan)" };
+          }
+
+          await prisma.jawabanEsais.upsert({
+            where: {
+              id_attempt_id_soal: {
+                id_attempt: Number(idAttempt),
+                id_soal: Number(ans.idSoal)
+              }
+            },
+            update: {
+              text_jawaban_esai: sanitizeString(ans.jawaban),
+              skor: result.score,
+              feedback: sanitizeString(result.feedback)
+            },
+            create: {
+              id_attempt: Number(idAttempt),
+              id_soal: Number(ans.idSoal),
+              text_jawaban_esai: sanitizeString(ans.jawaban),
+              skor: result.score,
+              feedback: sanitizeString(result.feedback)
+            }
+          });
+        }
+      }));
+    }
+
+    const finalizeResult = await Attempt.recalculateScoreWithGamification(idAttempt);
+
+    if (!finalizeResult) {
+      return response(404, null, 'Attempt tidak ditemukan', res);
+    }
+
+    const { attempt, gamification } = finalizeResult;
+    const responsePayload = {
+      ...attempt,
+      xp_gained: gamification.xp_gained,
+      total_xp: gamification.total_xp,
+      level_rank_up: gamification.level_rank_up,
+      new_level_rank: gamification.new_level_rank,
+      new_badges: gamification.new_badges
+    };
+
+    response(200, responsePayload, 'Batch attempt submitted successfully', res);
+  } catch (error) {
+    console.error("Batch submit failed:", error.message);
+    response(500, null, `Terjadi kesalahan server: ${error.message}`, res);
+  }
+}
+
+function sanitizeString(str) {
+  if (typeof str !== 'string') return str;
+  const nullChar = String.fromCodePoint(0);
+  return str.replace(new RegExp(nullChar, 'g'), '');
+}
+
 async function update(req, res) {
   try {
     const { id } = req.params;
@@ -202,6 +346,7 @@ module.exports = {
   getAttemptsByPelajar,
   create,
   submitAttempt,
+  submitBatch,
   update,
   remove,
   getLeaderboard
