@@ -62,6 +62,13 @@ async function getAttemptById(req, res) {
     if (!data) {
       return response(404, null, 'Attempt tidak ditemukan', res);
     }
+    if (req.auth && req.auth.type === 'PELAJAR') {
+      const requestPelajarId = Number(req.auth.id);
+      const attemptPelajarId = Number(data.id_pelajar);
+      if (attemptPelajarId !== requestPelajarId) {
+        return response(403, null, 'Attempt tidak tersedia untuk pengguna ini', res);
+      }
+    }
     response(200, data, `Berhasil mendapatkan attempt dengan id: ${id}`, res);
   } catch (error) {
     console.log(error.message);
