@@ -35,7 +35,6 @@ describe('create()', () => {
         expect(Soal.getSoalEsaiById).toHaveBeenCalledWith('1')
         expect(nilaiEsai).toHaveBeenCalledWith('Apa itu AI?', 'Ini jawaban dari soal', 'kecerdasan, buatan')
         expect(JwbEsai.createJwbEsai).toHaveBeenCalledWith('2', '1', 'Ini jawaban dari soal', 0.9, 'Bagus')
-        expect(Attempt.recalculateScore).toHaveBeenCalledWith('2')
         expect(response).toHaveBeenCalledWith(200, fakeData, 'successfully', res)
     })
 

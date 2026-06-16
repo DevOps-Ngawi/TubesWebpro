@@ -5,9 +5,20 @@
 
 jest.mock('../../src/models/attempt');
 jest.mock('../../src/helpers/response');
+jest.mock('../../src/models/prisma', () => ({
+  opsis: { findMany: jest.fn() },
+  jawabanPGs: { upsert: jest.fn() },
+  soals: { findMany: jest.fn() },
+  jawabanEsais: { upsert: jest.fn() }
+}));
+jest.mock('../../src/services/aiGrading', () => ({
+  nilaiEsai: jest.fn()
+}));
 
 const Attempt = require('../../src/models/attempt');
 const response = require('../../src/helpers/response');
+const prisma = require('../../src/models/prisma');
+const { nilaiEsai } = require('../../src/services/aiGrading');
 const {
   getAllAttempts,
   getAttemptById,
@@ -15,6 +26,7 @@ const {
   getAttemptsByPelajar,
   create,
   submitAttempt,
+  submitBatch,
   update,
   remove
 } = require('../../src/controllers/attemptController');
@@ -262,6 +274,62 @@ describe('Attempt Controller', () => {
       
       expect(response).toHaveBeenCalledWith(404, null, 'Attempt tidak ditemukan', res);
       expect(Attempt.deleteAttempt).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('submitBatch()', () => {
+    test('berhasil submit pg dan esai secara batch', async () => {
+      const req = {
+        params: { idAttempt: '1' },
+        body: {
+          answers: [
+            { tipe: 'pg', idOpsi: 10 },
+            { tipe: 'esai', idSoal: 2, jawaban: 'Logika' }
+          ]
+        }
+      };
+      const res = mockRes();
+
+      prisma.opsis.findMany.mockResolvedValue([{ id: 10, is_correct: true }]);
+      prisma.soals.findMany.mockResolvedValue([{ id: 2, text_soal: 'Soal 2', kata_kunci: 'logika' }]);
+      nilaiEsai.mockResolvedValue({ score: 1.0, feedback: 'Bagus' });
+      prisma.jawabanPGs.upsert.mockResolvedValue({});
+      prisma.jawabanEsais.upsert.mockResolvedValue({});
+
+      const fakeAttempt = { id: 1, skor: 100 };
+      const fakeGamification = {
+        xp_gained: 100,
+        total_xp: 200,
+        level_rank_up: false,
+        new_level_rank: 2,
+        new_badges: []
+      };
+      Attempt.recalculateScoreWithGamification.mockResolvedValue({
+        attempt: fakeAttempt,
+        gamification: fakeGamification
+      });
+
+      await submitBatch(req, res);
+
+      expect(prisma.opsis.findMany).toHaveBeenCalled();
+      expect(prisma.soals.findMany).toHaveBeenCalled();
+      expect(nilaiEsai).toHaveBeenCalledWith('Soal 2', 'Logika', 'logika');
+      expect(prisma.jawabanPGs.upsert).toHaveBeenCalled();
+      expect(prisma.jawabanEsais.upsert).toHaveBeenCalled();
+      expect(Attempt.recalculateScoreWithGamification).toHaveBeenCalledWith('1');
+      expect(response).toHaveBeenCalledWith(200, {
+        ...fakeAttempt,
+        ...fakeGamification
+      }, 'Batch attempt submitted successfully', res);
+    });
+
+    test('validasi gagal -> answers bukan array -> 400', async () => {
+      const req = { params: { idAttempt: '1' }, body: {} };
+      const res = mockRes();
+
+      await submitBatch(req, res);
+
+      expect(response).toHaveBeenCalledWith(400, null, 'answers harus berupa array', res);
     });
   });
 });

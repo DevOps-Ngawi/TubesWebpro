@@ -10,6 +10,7 @@ router.get('/attempts/level/:levelId', verifyLogin, attemptController.getAttempt
 router.get('/attempts/pelajar/:pelajarId', verifyLogin, attemptController.getAttemptsByPelajar);
 
 router.post('/attempts/submit', verifyLogin, attemptController.submitAttempt);
+router.post('/attempts/:idAttempt/submit-batch', verifyLogin, attemptController.submitBatch);
 
 router.put('/attempts/:id', verifyLogin, onlyAdmin, attemptController.update);
 

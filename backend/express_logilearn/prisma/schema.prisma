@@ -97,6 +97,7 @@ model jawabanEsais {
   attempts          attempts @relation(fields: [id_attempt], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "jawaban_esais_attempt_fk")
   soals             soals    @relation(fields: [id_soal], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "jawaban_esais_soal_fk")
 
+  @@unique([id_attempt, id_soal])
   @@index([id_soal], map: "jawaban_esais_id_soal_idx")
   @@index([id_attempt], map: "jawaban_esais_id_attempt_idx")
   @@index([id_admin], map: "jawaban_esais_id_admin_idx")
@@ -110,6 +111,7 @@ model jawabanPGs {
   attempts   attempts @relation(fields: [id_attempt], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "jawaban_pgs_attempt_fk")
   opsis      opsis    @relation(fields: [id_opsi], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "jawaban_pgs_opsi_fk")
 
+  @@unique([id_attempt, id_opsi])
   @@index([id_attempt], map: "jawaban_pgs_id_attempt_idx")
   @@index([id_opsi], map: "jawaban_pgs_id_opsi_idx")
 }

@@ -1,58 +1,58 @@
-const { GoogleGenAI } = require("@google/genai");
+const axios = require("axios");
 
-const { getRequiredEnv } = require('../helpers/env');
-
-let aiInstance;
-function getAi() {
-  if (!aiInstance) {
-    const apiKey = getRequiredEnv('GEMINI_API_KEY');
-    aiInstance = new GoogleGenAI({ apiKey });
-  }
-  return aiInstance;
-}
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 async function nilaiEsai(question, studentAnswer, keywords) {
-  const prompt = `
-Anda adalah dosen logika yang bertugas menilai jawaban esai mahasiswa.
+  const systemPrompt = `Anda adalah guru yang menilai jawaban esai siswa dengan cara yang SUPPORTIF dan MENDORONG semangat belajar.
+Berikan penilaian dalam format JSON dengan dua field:
+- "score": nilai desimal antara 0.0 sampai 1.0
+- "feedback": umpan balik maksimal 1-2 kalimat pendek, jelas, dan positif dalam bahasa Indonesia
 
-Soal:
+PANDUAN PEMBERIAN SKOR:
+- Fokus pada ESENSI dan KONSEP UTAMA jawaban, bukan pada kesempurnaan redaksi atau detail kecil.
+- Jika jawaban siswa sudah menyebutkan inti yang BENAR, berikan skor 1.0 meskipun ada perbedaan kecil dalam penulisan.
+- Skor 1.0: Konsep utama benar. Jawaban menunjukkan pemahaman yang jelas.
+- Skor 0.7–0.9: Benar sebagian besar, ada sedikit bagian yang kurang tepat secara konsep.
+- Skor 0.4–0.6: Jawaban ada relevansinya tapi pemahaman masih kurang.
+- Skor 0.0–0.3: Jawaban salah atau tidak relevan sama sekali.
+
+PENTING: Jangan kurangi skor hanya karena perbedaan ejaan kecil, informasi tambahan yang tidak diminta, atau cara penulisan yang berbeda.
+Hanya kembalikan JSON valid, tanpa teks tambahan.`;
+
+  const userPrompt = `Soal:
 ${question}
 
-${keywords ? `Kata Kunci Utama yang harus ada/sesuai:\n${keywords}\n` : ''}
-Jawaban Mahasiswa:
+${keywords ? `Kata Kunci Utama (gunakan sebagai panduan, bukan persyaratan mutlak):\n${keywords}\n` : ""}Jawaban Siswa:
 ${studentAnswer}
 
-Berikan penilaian berdasarkan ketepatan konsep dan kecocokan dengan kata kunci utama (jika ada).
-Skor harus berupa nilai desimal antara 0.0 (sangat salah) sampai 1.0 (sangat benar/sempurna).
-Berikan juga umpan balik (feedback) singkat dalam bahasa Indonesia yang konstruktif dan menjelaskan alasan pemberian skor tersebut.
-`;
+Nilai berdasarkan ketepatan KONSEP UTAMA. Jika inti jawaban sudah benar, berikan skor 1.0.`;
+
 
   try {
-    const ai = getAi();
-    const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: "object",
-          properties: {
-            score: {
-              type: "number",
-              description: "Skor desimal antara 0.0 (salah semua) dan 1.0 (benar sempurna)"
-            },
-            feedback: {
-              type: "string",
-              description: "Umpan balik singkat, jelas, dan konstruktif dalam bahasa Indonesia"
-            }
-          },
-          required: ["score", "feedback"]
-        }
+    const response = await axios.post(
+      GROQ_API_URL,
+      {
+        model: "llama-3.1-8b-instant",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 150, // Batasi token keluaran agar sangat cepat
+        temperature: 0.1 // Konsisten dan langsung ke inti jawaban
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        timeout: 4000 // Batasi waktu tunggu API Groq maksimal 4 detik agar tidak hang
       }
-    });
+    );
 
-    const data = JSON.parse(response.text.trim());
-    
+    const content = response.data.choices[0].message.content.trim();
+    const data = JSON.parse(content);
+
     // Pastikan score valid dan antara 0 dan 1
     let score = parseFloat(data.score);
     if (isNaN(score)) {
@@ -64,12 +64,19 @@ Berikan juga umpan balik (feedback) singkat dalam bahasa Indonesia yang konstruk
     // Batasi score dalam range 0.0 sampai 1.0
     score = Math.max(0.0, Math.min(1.0, score));
 
+    // Bulatkan ke 1.0 jika skor hampir sempurna (>= 0.85)
+    // Ini mencegah pengurangan skor tidak adil untuk jawaban yang jelas benar
+    if (score >= 0.85) {
+      score = 1.0;
+    }
+
+
     return {
       score: score,
       feedback: data.feedback || "Penilaian berhasil dilakukan."
     };
   } catch (err) {
-    console.error("Failed to parse Gemini response or generate content:", err);
+    console.error("Failed to call Groq or parse response:", err);
     throw new Error("Gagal melakukan penilaian otomatis: " + err.message);
   }
 }
@@ -78,3 +85,4 @@ module.exports = {
   nilaiEsai,
   gradeEssay: nilaiEsai
 };
+

@@ -26,8 +26,15 @@ async function createJwbPG(idAttempt, idOpsi) {
         }
     })
     const skor = opsi.is_correct ? 1 : 0
-    return prisma.jawabanPGs.create({
-        data: {
+    return prisma.jawabanPGs.upsert({
+        where: {
+            id_attempt_id_opsi: {
+                id_attempt: Number(idAttempt),
+                id_opsi: Number(idOpsi)
+            }
+        },
+        update: { skor },
+        create: {
             id_attempt: Number(idAttempt),
             id_opsi: Number(idOpsi),
             skor: skor

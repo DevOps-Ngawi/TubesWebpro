@@ -55,21 +55,24 @@ function computeFinalPercentage(attempt) {
     return 0;
   }
 
+  const maxScore = attempt.levels.soals.length;
+  if (maxScore === 0) return 0;
+
   let totalScore = 0;
   if (Array.isArray(attempt.jawaban_pgs)) {
     attempt.jawaban_pgs.forEach((j) => {
       totalScore += normalizeScore(j.skor);
     });
   }
-
   if (Array.isArray(attempt.jawaban_esais)) {
     attempt.jawaban_esais.forEach((j) => {
       totalScore += normalizeScore(j.skor);
     });
   }
 
-  const maxScore = attempt.levels.soals.length;
-  return maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
+  const percentage = (totalScore / maxScore) * 100;
+  // Clamp to [0, 100] as safety net
+  return Math.min(100, Math.max(0, percentage));
 }
 
 class Attempt {
@@ -237,6 +240,8 @@ class Attempt {
         attempt: updatedAttempt,
         gamification: gamificationResult
       };
+    }, {
+      timeout: 20000 // 20 seconds to handle slow cloud database latencies and cold starts
     });
   }
 

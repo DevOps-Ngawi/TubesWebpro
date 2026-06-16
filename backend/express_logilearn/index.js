@@ -50,6 +50,8 @@ app.use('/api', jawabanPGRouter)
 app.use('/api', jawabanEsaiRouter)
 app.use('/api', dashboardRouter)
 
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.get('/', (req, res) => {
   res.send('Hello world')
 })
