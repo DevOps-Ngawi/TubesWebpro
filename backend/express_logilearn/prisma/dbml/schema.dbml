@@ -1,0 +1,152 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table sections {
+  id Int [pk, increment]
+  nama String [not null]
+  slug String
+  levels levels [not null]
+}
+
+Table levels {
+  id Int [pk, increment]
+  id_section Int [not null]
+  nama String [not null]
+  deskripsi String
+  urutan Int
+  attempts attempts [not null]
+  sections sections [not null]
+  soals soals [not null]
+}
+
+Table pelajars {
+  id Int [pk, increment]
+  nama String [not null]
+  username String [not null]
+  password String [not null]
+  xp Int [not null, default: 0]
+  level_rank Int [not null, default: 1]
+  attempts attempts [not null]
+  pelajar_badges pelajar_badges [not null]
+}
+
+Table attempts {
+  id Int [pk, increment]
+  id_level Int [not null]
+  id_pelajar Int [not null]
+  skor Float [not null]
+  created_at DateTime [default: `now()`, not null]
+  levels levels [not null]
+  pelajars pelajars [not null]
+  jawaban_esais jawabanEsais [not null]
+  jawaban_pgs jawabanPGs [not null]
+}
+
+Table soals {
+  id Int [pk, increment]
+  id_level Int [not null]
+  tipe Tipe [not null]
+  text_soal String [not null]
+  kata_kunci String
+  jawaban_esais jawabanEsais [not null]
+  opsis opsis [not null]
+  levels levels [not null]
+}
+
+Table opsis {
+  id Int [pk, increment]
+  id_soal Int [not null]
+  text_opsi String [not null]
+  is_correct Boolean [not null]
+  jawaban_pgs jawabanPGs [not null]
+  soals soals [not null]
+}
+
+Table admins {
+  id Int [pk, increment]
+  nama String [not null]
+  username String [not null]
+  password String [not null]
+  jawaban_esais jawabanEsais [not null]
+}
+
+Table jawabanEsais {
+  id Int [pk, increment]
+  id_soal Int [not null]
+  id_attempt Int [not null]
+  id_admin Int
+  text_jawaban_esai String [not null]
+  skor Float [not null]
+  feedback String
+  admins admins
+  attempts attempts [not null]
+  soals soals [not null]
+
+  indexes {
+    (id_attempt, id_soal) [unique]
+  }
+}
+
+Table jawabanPGs {
+  id Int [pk, increment]
+  id_attempt Int [not null]
+  id_opsi Int [not null]
+  skor Float [not null]
+  attempts attempts [not null]
+  opsis opsis [not null]
+
+  indexes {
+    (id_attempt, id_opsi) [unique]
+  }
+}
+
+Table badges {
+  id Int [pk, increment]
+  name String [unique, not null]
+  description String [not null]
+  criteria_type String [not null]
+  pelajar_badges pelajar_badges [not null]
+}
+
+Table pelajar_badges {
+  id Int [pk, increment]
+  id_pelajar Int [not null]
+  id_badge Int [not null]
+  obtained_at DateTime [default: `now()`, not null]
+  pelajars pelajars [not null]
+  badges badges [not null]
+
+  indexes {
+    (id_pelajar, id_badge) [unique]
+  }
+}
+
+Enum Tipe {
+  pg
+  esai
+}
+
+Ref: levels.id_section > sections.id [delete: Cascade]
+
+Ref: attempts.id_level > levels.id [delete: Cascade]
+
+Ref: attempts.id_pelajar > pelajars.id [delete: Cascade]
+
+Ref: soals.id_level > levels.id [delete: Cascade]
+
+Ref: opsis.id_soal > soals.id [delete: Cascade]
+
+Ref: jawabanEsais.id_admin > admins.id [delete: Cascade]
+
+Ref: jawabanEsais.id_attempt > attempts.id [delete: Cascade]
+
+Ref: jawabanEsais.id_soal > soals.id [delete: Cascade]
+
+Ref: jawabanPGs.id_attempt > attempts.id [delete: Cascade]
+
+Ref: jawabanPGs.id_opsi > opsis.id [delete: Cascade]
+
+Ref: pelajar_badges.id_pelajar > pelajars.id [delete: Cascade]
+
+Ref: pelajar_badges.id_badge > badges.id [delete: Cascade]
