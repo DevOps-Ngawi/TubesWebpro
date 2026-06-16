@@ -1,0 +1,40 @@
+services:
+  database:
+    image: mfaizadya/logilearn-db:latest
+    container_name: logilearn-db
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: logilearn
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  backend:
+    image: mfaizadya/logilearn-backend:latest
+    container_name: logilearn-backend
+    restart: always
+    ports:
+      - "5001:5000"
+    environment:
+      DB_HOST: database
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: logilearn
+      JWT_SECRET: supersecret123
+    depends_on:
+      - database
+
+  frontend:
+    image: mfaizadya/logilearn-frontend:latest
+    container_name: logilearn-frontend
+    restart: always
+    ports:
+      - "3001:3000"
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
