@@ -1,24 +1,21 @@
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
-
-# Copy Prisma schema
+# Copy Prisma schema before npm install so postinstall script can find it
 COPY prisma ./prisma/
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Install dependencies (this will automatically trigger prisma generate due to postinstall script)
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
 
 # Stage 2: Production
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
