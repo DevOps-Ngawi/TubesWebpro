@@ -29,7 +29,8 @@
     "ngrok": "^5.0.0-beta.2",
     "nodemon": "^3.1.11",
     "pg": "^8.20.0",
-    "prisma": "^6.13.0"
+    "prisma": "^6.13.0",
+    "prom-client": "^15.1.3"
   },
   "devDependencies": {
     "jest": "^30.3.0",
