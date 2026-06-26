@@ -40,6 +40,19 @@ async function main() {
     console.log(`  ✓ Badge "${result.name}" (id: ${result.id}) seeded.`);
   }
 
+  console.log('Seeding admin...');
+  const admin = await prisma.admins.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      id: 1,
+      nama: 'Super Admin',
+      username: 'admin',
+      password: '$2a$12$OIRox5.TyBudfPJJEQ8GJuK3SD1/R7eSlx/50lW2HhdFAL2RRbRJ6',
+    },
+  });
+  console.log(`  ✓ Admin "${admin.username}" (id: ${admin.id}) seeded.`);
+
   console.log('Seeding selesai.');
 }
 
@@ -51,3 +64,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+

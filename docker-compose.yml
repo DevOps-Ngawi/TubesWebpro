@@ -13,26 +13,38 @@ services:
       - db_data:/var/lib/postgresql/data
 
   backend:
-    image: mfaizadya/logilearn-backend:latest
+    build:
+      context: ./backend/express_logilearn
+      dockerfile: Dockerfile
     container_name: logilearn-backend
     restart: always
     ports:
       - "5001:5000"
     environment:
+      PORT: 5000
       DB_HOST: database
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: logilearn
+      DATABASE_URL: postgresql://postgres:postgres@database:5432/logilearn?schema=public
       JWT_SECRET: supersecret123
+      CORS_ORIGIN: http://localhost:3001
     depends_on:
       - database
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm start"
 
   frontend:
-    image: mfaizadya/logilearn-frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-}
     container_name: logilearn-frontend
     restart: always
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-}
     ports:
-      - "3001:3000"
+      - "3001:80"
     depends_on:
       - backend
 

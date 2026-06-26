@@ -28,6 +28,6 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/index.js ./
 
-EXPOSE 3000
+EXPOSE 5000
 
 CMD ["npm", "start"]
