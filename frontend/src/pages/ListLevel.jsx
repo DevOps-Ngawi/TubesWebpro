@@ -9,7 +9,7 @@ import AddLevelModal from "../components/AddLevelModal";
 import UpdateLevelModal from "../components/UpdateLevelModal";
 import DeleteLevelModal from "../components/DeleteLevelModal";
 import EditSectionModal from "../components/EditSectionModal";
-
+//
 const LevelPage = () => {
   const navigate = useNavigate();
 
